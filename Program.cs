@@ -33,7 +33,7 @@ namespace OctScanner
             Console.WriteLine("面积： {0}", GetArea());
             // Console.WriteLine(new int[1]);
         }
-    }//end class Rectangle    
+    }//end class Rectangle (test)
 
     class ExecuteRectangle
     {
