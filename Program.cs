@@ -4,51 +4,61 @@
 // using System;
 namespace OctScanner
 {
-    class Rectangle
+    class Testfunc
     {
         // 私有成员变量
-        private double _length;
-        private double _width;
+        internal double InputDisplay;
+        private double _result; 
 
         // 公有方法，用于从用户输入获取矩形的长度和宽度
-        public void AcceptDetails()
+        public void GetInput()
         {
-            Console.WriteLine("请输入长度：");
-            _length = Convert.ToDouble(Console.ReadLine());
-            Console.WriteLine("请输入宽度：");
-            _width = Convert.ToDouble(Console.ReadLine());
+            Console.WriteLine("Enter your input：");
+            InputDisplay = Convert.ToDouble(Console.ReadLine());
         }
-
-        // 公有方法，用于计算矩形的面积
-        private double GetArea()
+        
+        private double Calculate()
         {
-            return _length * _width;
+            // _result = _length * _width;
+            _result = --InputDisplay;
+            return _result;
         }
-
-        // 公有方法，用于显示矩形的属性和面积
+        
         public void Display()
         {
-            Console.WriteLine("长度： {0}", _length);
-            Console.WriteLine("宽度： {0}", _width);
-            Console.WriteLine("面积： {0}", GetArea());
+            Console.WriteLine("The input integer is： {0}", Calculate());
             // Console.WriteLine(new int[1]);
         }
-    }//end class Rectangle (test_4)
+    }
 
-    class ExecuteRectangle
+    
+    class CodeRun
     {
         static void Main(string[] args)
         {
-            // 创建 Rectangle 类的实例
-            Rectangle r = new Rectangle();
+            // 创建 testfunc 类的实例
+            Testfunc r = new Testfunc(); 
+            r.GetInput();
+            if (r.InputDisplay % 1 == 0)
+            {
+                r.Display();
+            }
+            else  Console.WriteLine("The input is not an integer");
+            switch (r.InputDisplay)
+            {
+                case (> 0):
+                    Console.WriteLine("and it's > 0");
+                    break;
+                case (< 0):
+                    Console.WriteLine("and it's < 0");
+                    break;
+                default:
+                    Console.WriteLine("and it's zero");
+                    break;
+            }
 
-            // 通过公有方法 AcceptDetails() 从用户输入获取矩形的长度和宽度
-            r.AcceptDetails();
-
-            // 通过公有方法 Display() 显示矩形的属性和面积
-            r.Display();
-
-            Console.ReadLine();
+            Console.WriteLine("Announcement: code test finish.");
+            // Console.ReadLine();
         }
     }
 }
