@@ -12,5 +12,6 @@
 
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="Icons.axaml" />
     </Application.Styles>
 </Application>
