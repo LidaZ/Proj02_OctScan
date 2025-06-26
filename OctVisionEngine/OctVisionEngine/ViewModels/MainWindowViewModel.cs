@@ -21,7 +21,7 @@ namespace OctVisionEngine.ViewModels
         [RelayCommand]
         private async Task RuntestAsync()
         {
-            // Code here will be executed when the buttom being pressed. 
+            // Code here will be executed when the buttom being pressed. Re-emerge test. 
             GetInput();
             CalToOutput();
         }
