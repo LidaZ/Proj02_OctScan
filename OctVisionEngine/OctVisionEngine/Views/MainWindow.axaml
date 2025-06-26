@@ -2,10 +2,14 @@
     Background="Transparent"
     ExtendClientAreaToDecorationsHint="True"
     Icon="/Assets/avalonia-logo.ico"
+    MaxHeight="800"
+    MaxWidth="1000"
+    MinHeight="400"
+    MinWidth="400"
     Title="OctVisionEngine"
     TransparencyLevelHint="AcrylicBlur"
-    d:DesignHeight="300"
-    d:DesignWidth="400"
+    d:DesignHeight="200"
+    d:DesignWidth="200"
     mc:Ignorable="d"
     x:Class="OctVisionEngine.Views.MainWindow"
     x:DataType="vm:MainWindowViewModel"
@@ -40,10 +44,22 @@
         </ExperimentalAcrylicBorder>
 
         <Panel Margin="40">
-            <Button HorizontalAlignment="Right" VerticalAlignment="Top">
+            <!--  Button to open store library  -->
+            <Button
+                Command="{Binding RuntestCommand}"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top">
                 <PathIcon Data="{StaticResource store_microsoft_regular}" />
             </Button>
         </Panel>
+
+        <Panel Margin="10">
+            <!--  Button for test, maybe for opending image  -->
+            <Button HorizontalAlignment="Left" VerticalAlignment="Top">
+                <PathIcon Data="{StaticResource image_add_regular}" />
+            </Button>
+        </Panel>
+
     </Panel>
 
 
