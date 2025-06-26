@@ -1,0 +1,67 @@
+<Window
+    Background="Transparent"
+    ExtendClientAreaToDecorationsHint="True"
+    Icon="/Assets/avalonia-logo.ico"
+    MaxHeight="800"
+    MaxWidth="1000"
+    MinHeight="400"
+    MinWidth="400"
+    Title="OctVisionEngine"
+    TransparencyLevelHint="AcrylicBlur"
+    d:DesignHeight="200"
+    d:DesignWidth="200"
+    mc:Ignorable="d"
+    x:Class="OctVisionEngine.Views.MainWindow"
+    x:DataType="vm:MainWindowViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:OctVisionEngine.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Design.DataContext>
+        <!--
+            This only sets the DataContext for the previewer in an IDE,
+            to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs)
+        -->
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <!--  <TextBlock  -->
+    <!--  HorizontalAlignment="Center"  -->
+    <!--  Text="{Binding Greeting}"  -->
+    <!--  VerticalAlignment="Center" />  -->
+
+    <Panel>
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    MaterialOpacity="0.65"
+                    TintColor="Black"
+                    TintOpacity="1" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <Panel Margin="40">
+            <!--  Button to open store library  -->
+            <Button
+                Command="{Binding RuntestCommand}"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top">
+                <PathIcon Data="{StaticResource store_microsoft_regular}" />
+            </Button>
+        </Panel>
+
+        <Panel Margin="10">
+            <!--  Button for test, maybe for opending image  -->
+            <Button HorizontalAlignment="Left" VerticalAlignment="Top">
+                <PathIcon Data="{StaticResource image_add_regular}" />
+            </Button>
+        </Panel>
+
+    </Panel>
+
+
+
+</Window>
