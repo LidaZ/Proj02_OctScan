@@ -5,7 +5,7 @@
     TransparencyLevelHint="AcrylicBlur"
     Width="300"
     WindowStartupLocation="CenterOwner"
-    d:DesignHeight="200"
+    d:DesignHeight="150"
     d:DesignWidth="200"
     mc:Ignorable="d"
     x:Class="OctVisionEngine.Views.StoreWindow"
@@ -35,13 +35,20 @@
             </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
 
-        <Panel Margin="20" />
-        <Button
-            Command="{Binding StoreViewModel_OpenAlbumWindow_Command}"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Bottom">
-            <PathIcon Data="{StaticResource settings_regular}" />
-        </Button>
+        <Panel Margin="20">
+            <Button
+                Command="{Binding StoreViewModel_OpenAlbumWindow_Command}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom">
+                <PathIcon Data="{StaticResource settings_regular}" />
+            </Button>
+        </Panel>
+
+        <Panel Height="50" HorizontalAlignment="Center">
+            <StackPanel>
+                <TextBlock Text="Click to open Text window" />
+            </StackPanel>
+        </Panel>
     </Panel>
 
 </Window>
