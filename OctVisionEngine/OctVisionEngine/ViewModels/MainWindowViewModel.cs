@@ -1,9 +1,13 @@
 ﻿using System;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.Messaging;
 using OctVisionEngine.Messages;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 
 namespace OctVisionEngine.ViewModels
 {
@@ -13,11 +17,27 @@ namespace OctVisionEngine.ViewModels
         private double _result; 
         
         [ObservableProperty] 
-        private string greeting = "welcome!";
+        private string? _imagePath;
+        
+        [ObservableProperty] 
+        private Bitmap? _displayImage;
         
         public MainWindowViewModel()
         {
             // ViewModel initialization logic.
+            LoadImageCommand = new RelayCommand(LoadImage);
+        }
+        
+        public IRelayCommand LoadImageCommand { get; }
+
+        private void LoadImage()
+        {
+            var testFigPath = @"C:\Users\lzhu\Desktop\Fig1.png";
+            if (File.Exists(testFigPath))
+            {
+                DisplayImage = new Bitmap(testFigPath);
+                Console.WriteLine("✅ Image loaded successfully.");
+            }
         }
 
         [RelayCommand]
@@ -29,21 +49,31 @@ namespace OctVisionEngine.ViewModels
             var album = await WeakReferenceMessenger.Default.Send(new TestCode_OpenStorePage());
         }
 
-        public void GetInput()
-        {
-            Console.WriteLine("Enter your input: ");
-            _input = Convert.ToDouble(Console.ReadLine());
-        }
-
-        private double Calculate()
-        {
-            _result = --_input;
-            return _result;
-        }
-
-        public void CalToOutput()
-        {
-            Console.WriteLine("Your input is: {0}", Calculate());
-        }
+        // [RelayCommand]
+        // private async Task LoadImagePopWindow_Async()
+        // {
+        //     var dialog = new OpenFileDialog
+        //     {
+        //         Title = "select an image", AllowMultiple = false, Filters =
+        //         {
+        //             new FileDialogFilter { Name = "Image Files" }
+        //         }
+        //     };
+        //
+        //     var window = App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+        //         ? desktop.MainWindow
+        //         : null;
+        //     
+        //     if (window == null)
+        //         return;
+        //
+        //     var result = await dialog.ShowAsync(window);
+        //     if (result.Length > 0 && File.Exists(result[0]))
+        //     {
+        //         ImagePath = result[0];
+        //         using var stream = File.OpenRead(ImagePath);
+        //         DisplayImage = await Task.Run(() => Bitmap.DecodeToWidth(stream, 1024)); 
+        //     }
+        // }
     }
 }

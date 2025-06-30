@@ -9,16 +9,35 @@
     d:DesignWidth="200"
     mc:Ignorable="d"
     x:Class="OctVisionEngine.Views.TextWindow"
+    x:DataType="viewModels:TextWindow_ViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModels="clr-namespace:OctVisionEngine.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Grid>
-        <TextBlock
-            FontSize="20"
-            HorizontalAlignment="Center"
-            Text="Welcome Text Test #2"
-            VerticalAlignment="Center" />
-    </Grid>
+    <!-- <Design.DataContext> -->
+    <!--  <Vi  -->
+    <!-- </Design.DataContext> -->
+
+    <Panel>
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    MaterialOpacity="0.65"
+                    TintColor="Black"
+                    TintOpacity="1" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <Grid>
+            <TextBlock
+                FontSize="15"
+                HorizontalAlignment="Center"
+                Text="Welcome Text Test #2"
+                VerticalAlignment="Center" />
+        </Grid>
+    </Panel>
+
 </Window>
