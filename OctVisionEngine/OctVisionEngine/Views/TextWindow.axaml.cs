@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace OctVisionEngine.Views;
 
-public partial class MusisStoreWindow : Window
+public partial class TextWindow : Window
 {
-    public MusisStoreWindow()
+    public TextWindow()
     {
         InitializeComponent();
     }

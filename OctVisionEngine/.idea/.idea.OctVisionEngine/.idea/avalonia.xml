@@ -5,6 +5,7 @@
       <map>
         <entry key="OctVisionEngine/App.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Icons.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
+        <entry key="OctVisionEngine/Views/AlbumWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/MainWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/MusisStoreWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
       </map>

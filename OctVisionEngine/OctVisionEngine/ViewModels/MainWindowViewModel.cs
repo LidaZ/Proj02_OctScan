@@ -2,6 +2,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Messaging;
+using OctVisionEngine.Messages;
 
 namespace OctVisionEngine.ViewModels
 {
@@ -19,11 +21,12 @@ namespace OctVisionEngine.ViewModels
         }
 
         [RelayCommand]
-        private async Task RuntestAsync()
+        private async Task TestCode_Async()
         {
             // Code here will be executed when the buttom being pressed. Re-emerge test. 
-            GetInput();
-            CalToOutput();
+            // GetInput();
+            // CalToOutput();
+            var album = await WeakReferenceMessenger.Default.Send(new TestCode_OpenStorePage());
         }
 
         public void GetInput()
