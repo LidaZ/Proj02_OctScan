@@ -1,6 +1,6 @@
 ﻿namespace OctVisionEngine.ViewModels;
 
-public class Album_ViewModel
+public class Album_ViewModel : ViewModelBase
 {
     
 }

@@ -26,7 +26,7 @@ public partial class MainWindow : Window
         {
             var dialog = new StoreWindow
             {
-                DataContext = new ClassStoreViewModel()
+                DataContext = new StoreViewModel_Class()
             };
             m.Reply(dialog.ShowDialog<Album_ViewModel?>(w));
         });

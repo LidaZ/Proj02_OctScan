@@ -1,9 +1,9 @@
 ﻿<UserControl
     d:DesignHeight="450"
-    d:DesignWidth="800"
+    d:DesignWidth="600"
     mc:Ignorable="d"
     x:Class="OctVisionEngine.Views.StoreView"
-    x:DataType="vm:ClassStoreViewModel"
+    x:DataType="vm:StoreViewModel_Class"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -19,7 +19,7 @@
             Content="Shut up and take my money"
             DockPanel.Dock="Bottom"
             HorizontalAlignment="Center" />
-        <ListBox ItemsSource="{Binding SearchPreview}" SelectedItem="{Binding SelectItem}" />
+        <ListBox ItemsSource="{Binding SearchListUpdate_event}" SelectedItem="{Binding SelectedAlbum}" />
     </DockPanel>
 
 </UserControl>

@@ -8,19 +8,19 @@ using OctVisionEngine.Messages;
 
 namespace OctVisionEngine.ViewModels
 {
-    public partial class ClassStoreViewModel : ViewModelBase
+    public partial class StoreViewModel_Class : ViewModelBase
     {
         // StoreViewModel : ObservableObject
         [ObservableProperty]
         public partial string? SearchText { get; set; }
-
+        
         [ObservableProperty] 
         public partial bool IsBusy { get; private set; }
-        
-        [ObservableProperty]
-        public partial Album_ViewModel? SelectItem { get ; get; }
 
-        public ObservableCollection<Album_ViewModel> SearchPreview { get; } = new(); 
+        [ObservableProperty] 
+        public partial Album_ViewModel? SelectedAlbum { get; set; }
+
+        public ObservableCollection<Album_ViewModel> SearchListUpdate_event { get; } = new(); 
 
         [RelayCommand]
         private async Task StoreViewModel_OpenAlbumWindow_Async()
@@ -29,13 +29,12 @@ namespace OctVisionEngine.ViewModels
             var tmp = await WeakReferenceMessenger.Default.Send(new Messages_OpenTextWindow());
         }
 
-        public ClassStoreViewModel()
+        public StoreViewModel_Class()
         {
-            SearchPreview.Add(new Album_ViewModel());
-            SearchPreview.Add(new Album_ViewModel());
-            SearchPreview.Add(new Album_ViewModel());
+            SearchListUpdate_event.Add(new Album_ViewModel());
+            SearchListUpdate_event.Add(new Album_ViewModel());
+            SearchListUpdate_event.Add(new Album_ViewModel());
         }
     }
-    
     
 }
