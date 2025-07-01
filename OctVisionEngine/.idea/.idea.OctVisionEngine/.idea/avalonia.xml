@@ -8,6 +8,7 @@
         <entry key="OctVisionEngine/Views/AlbumWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/MainWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/MusisStoreWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
+        <entry key="OctVisionEngine/Views/StoreView.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/StoreWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/TextWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
       </map>

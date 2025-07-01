@@ -22,11 +22,11 @@ public partial class MainWindow : Window
         // }
         if (Design.IsDesignMode)
             return;
-        WeakReferenceMessenger.Default.Register<MainWindow, TestCode_OpenStorePage>(this, static (w, m) =>
+        WeakReferenceMessenger.Default.Register<MainWindow, Message_OpenStorePage>(this, static (w, m) =>
         {
             var dialog = new StoreWindow
             {
-                DataContext = new StoreViewModel()
+                DataContext = new ClassStoreViewModel()
             };
             m.Reply(dialog.ShowDialog<Album_ViewModel?>(w));
         });

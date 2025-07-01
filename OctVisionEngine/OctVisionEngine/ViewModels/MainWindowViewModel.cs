@@ -46,7 +46,7 @@ namespace OctVisionEngine.ViewModels
             // Code here will be executed when the buttom being pressed. Re-emerge test. 
             // GetInput();
             // CalToOutput();
-            var album = await WeakReferenceMessenger.Default.Send(new TestCode_OpenStorePage());
+            var album = await WeakReferenceMessenger.Default.Send(new Message_OpenStorePage());
         }
 
         // [RelayCommand]
