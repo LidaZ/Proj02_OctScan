@@ -8,9 +8,9 @@ using OctVisionEngine.Messages;
 
 namespace OctVisionEngine.Views;
 
-public partial class TextWindow : Window
+public partial class Text_Window_View : Window
 {
-    public TextWindow()
+    public Text_Window_View()
     {
         InitializeComponent();
     }

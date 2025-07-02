@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Linq;
+using System.Threading;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using OctVisionEngine.Models;
+using OctVisionEngine.Messages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Messaging;
-using OctVisionEngine.Messages;
+// using iTunesSearch.Library.Models;
+
 
 namespace OctVisionEngine.ViewModels
 {
@@ -29,12 +34,33 @@ namespace OctVisionEngine.ViewModels
             var tmp = await WeakReferenceMessenger.Default.Send(new Messages_OpenTextWindow());
         }
 
-        public StoreViewModel_Class()
+        private async Task DoSearch(string? term)
         {
-            SearchListUpdate_event.Add(new Album_ViewModel());
-            SearchListUpdate_event.Add(new Album_ViewModel());
-            SearchListUpdate_event.Add(new Album_ViewModel());
+            IsBusy = true;
+            SearchListUpdate_event.Clear();
+
+            var albums = await Album.SearchAsync(term);
+
+            foreach (var album in albums)
+            {
+                var vm = new Album_ViewModel(album);
+                SearchListUpdate_event.Add(vm);
+            }
+
+            IsBusy = false;
         }
+        
+        partial void OnSearchTextChanged(string? value)
+        {
+            _ = DoSearch(SearchText);
+        }
+        
+        // public StoreViewModel_Class()
+        // {
+        //     SearchListUpdate_event.Add(new Album_ViewModel());
+        //     SearchListUpdate_event.Add(new Album_ViewModel());
+        //     SearchListUpdate_event.Add(new Album_ViewModel());
+        // }
     }
     
 }

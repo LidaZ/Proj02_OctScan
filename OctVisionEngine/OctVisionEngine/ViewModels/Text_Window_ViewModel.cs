@@ -1,6 +1,6 @@
 ﻿namespace OctVisionEngine.ViewModels;
 
-public class TextWindow_ViewModel
+public class Text_Window_ViewModel
 {
     
 }

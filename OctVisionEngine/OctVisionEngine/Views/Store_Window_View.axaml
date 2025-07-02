@@ -3,12 +3,12 @@
     Height="500"
     Title="MusisStoreWindow"
     TransparencyLevelHint="AcrylicBlur"
-    Width="500"
+    Width="900"
     WindowStartupLocation="CenterOwner"
     d:DesignHeight="450"
     d:DesignWidth="600"
     mc:Ignorable="d"
-    x:Class="OctVisionEngine.Views.StoreWindow"
+    x:Class="OctVisionEngine.Views.Store_Window_View"
     x:DataType="viewModels:StoreViewModel_Class"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -55,7 +55,7 @@
         </Panel>
 
         <Panel Margin="70">
-            <views:Store_View />
+            <views:Store_PreviewPanel_View />
         </Panel>
 
     </Panel>

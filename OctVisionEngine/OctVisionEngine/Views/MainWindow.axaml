@@ -45,7 +45,7 @@
         <Panel Margin="30">
             <!--  Button to open store gallery  -->
             <Button
-                Command="{Binding TestCode_Command}"
+                Command="{Binding Command_OpenStoreWindow_Command}"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top">
                 <PathIcon Data="{StaticResource store_microsoft_regular}" />

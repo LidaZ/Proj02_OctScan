@@ -41,7 +41,7 @@ namespace OctVisionEngine.ViewModels
         }
 
         [RelayCommand]
-        private async Task TestCode_Async()
+        private async Task Command_OpenStoreWindow_Async()
         {
             // Code here will be executed when the buttom being pressed. Re-emerge test. 
             // GetInput();

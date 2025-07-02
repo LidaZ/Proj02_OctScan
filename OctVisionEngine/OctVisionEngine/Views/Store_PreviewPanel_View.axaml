@@ -2,7 +2,7 @@
     d:DesignHeight="450"
     d:DesignWidth="600"
     mc:Ignorable="d"
-    x:Class="OctVisionEngine.Views.Store_View"
+    x:Class="OctVisionEngine.Views.Store_PreviewPanel_View"
     x:DataType="vm:StoreViewModel_Class"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -12,14 +12,24 @@
 
     <DockPanel>
         <StackPanel DockPanel.Dock="Top">
-            <TextBox Text="Empty" Watermark="Type here to search (Data binding test)....." />
+            <TextBox Text="{Binding SearchText, Delay=400}" Watermark="Type here to search (Data binding test)....." />
             <ProgressBar IsIndeterminate="True" />
         </StackPanel>
         <Button
             Content="Shut up and take my money"
             DockPanel.Dock="Bottom"
             HorizontalAlignment="Center" />
-        <ListBox ItemsSource="{Binding SearchListUpdate_event}" SelectedItem="{Binding SelectedAlbum}" />
+        <ListBox
+            Background="Transparent"
+            ItemsSource="{Binding SearchListUpdate_event}"
+            Margin="0,20"
+            SelectedItem="{Binding SelectedAlbum}">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+        </ListBox>
     </DockPanel>
 
 </UserControl>

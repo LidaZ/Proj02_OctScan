@@ -24,7 +24,7 @@ public partial class MainWindow : Window
             return;
         WeakReferenceMessenger.Default.Register<MainWindow, Message_OpenStorePage>(this, static (w, m) =>
         {
-            var dialog = new StoreWindow
+            var dialog = new Store_Window_View
             {
                 DataContext = new StoreViewModel_Class()
             };
