@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace OctVisionEngine.Views;
 
-public partial class AlbumView : UserControl
+public partial class Album_View : UserControl
 {
-    public AlbumView()
+    public Album_View()
     {
         InitializeComponent();
     }

@@ -5,7 +5,7 @@
     d:DesignHeight="150"
     d:DesignWidth="150"
     mc:Ignorable="d"
-    x:Class="OctVisionEngine.Views.AlbumView"
+    x:Class="OctVisionEngine.Views.Album_View"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"

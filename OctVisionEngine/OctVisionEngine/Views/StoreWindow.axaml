@@ -54,8 +54,8 @@
             </StackPanel>
         </Panel>
 
-        <Panel Margin="50">
-            <views:StoreView />
+        <Panel Margin="70">
+            <views:Store_View />
         </Panel>
 
     </Panel>

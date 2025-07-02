@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace OctVisionEngine.Views;
 
-public partial class StoreView : UserControl
+public partial class Store_View : UserControl
 {
-    public StoreView()
+    public Store_View()
     {
         InitializeComponent();
     }

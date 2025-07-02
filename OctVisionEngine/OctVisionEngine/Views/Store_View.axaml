@@ -2,7 +2,7 @@
     d:DesignHeight="450"
     d:DesignWidth="600"
     mc:Ignorable="d"
-    x:Class="OctVisionEngine.Views.StoreView"
+    x:Class="OctVisionEngine.Views.Store_View"
     x:DataType="vm:StoreViewModel_Class"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
