@@ -3,7 +3,7 @@
     d:DesignWidth="600"
     mc:Ignorable="d"
     x:Class="OctVisionEngine.Views.Store_PreviewPanel_View"
-    x:DataType="vm:StoreViewModel_Class"
+    x:DataType="vm:Store_PreviewPanel_ViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -16,7 +16,7 @@
             <ProgressBar IsIndeterminate="True" />
         </StackPanel>
         <Button
-            Content="Shut up and take my money"
+            Content="Select bottom (test)"
             DockPanel.Dock="Bottom"
             HorizontalAlignment="Center" />
         <ListBox

@@ -6,16 +6,22 @@
     d:DesignWidth="150"
     mc:Ignorable="d"
     x:Class="OctVisionEngine.Views.Album_View"
+    x:DataType="vm:Album_ViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:OctVisionEngine.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
 
     <StackPanel Spacing="5" Width="100">
         <Border ClipToBounds="True" CornerRadius="40">
             <Panel Background="CornflowerBlue">
-                <Image Stretch="Uniform" Width="150" />
-                <Panel Height="100">
+                <Image
+                    Source="{Binding Cover}"
+                    Stretch="Uniform"
+                    Width="150" />
+                <Panel Height="100" IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}">
                     <PathIcon
                         Data="{StaticResource midi_regular}"
                         Height="75"
@@ -23,5 +29,7 @@
                 </Panel>
             </Panel>
         </Border>
+        <TextBlock HorizontalAlignment="Center" Text="{Binding Title}" />
+        <TextBlock HorizontalAlignment="Center" Text="{Binding Artist}" />
     </StackPanel>
 </UserControl>

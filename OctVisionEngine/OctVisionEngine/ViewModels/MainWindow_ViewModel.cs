@@ -11,7 +11,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 
 namespace OctVisionEngine.ViewModels
 {
-    public partial class MainWindowViewModel : ObservableObject
+    public partial class MainWindow_ViewModel : ObservableObject
     {
         private double _input;
         private double _result; 
@@ -22,7 +22,7 @@ namespace OctVisionEngine.ViewModels
         [ObservableProperty] 
         private Bitmap? _displayImage;
         
-        public MainWindowViewModel()
+        public MainWindow_ViewModel()
         {
             // ViewModel initialization logic.
             LoadImageCommand = new RelayCommand(LoadImage);
@@ -61,7 +61,7 @@ namespace OctVisionEngine.ViewModels
         //     };
         //
         //     var window = App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-        //         ? desktop.MainWindow
+        //         ? desktop.MainWindow_View
         //         : null;
         //     
         //     if (window == null)

@@ -9,9 +9,9 @@ using System.IO;
 
 namespace OctVisionEngine.Views;
 
-public partial class MainWindow : Window
+public partial class MainWindow_View : Window
 {
-    public MainWindow()
+    public MainWindow_View()
     {
         InitializeComponent();
 
@@ -22,11 +22,11 @@ public partial class MainWindow : Window
         // }
         if (Design.IsDesignMode)
             return;
-        WeakReferenceMessenger.Default.Register<MainWindow, Message_OpenStorePage>(this, static (w, m) =>
+        WeakReferenceMessenger.Default.Register<MainWindow_View, Message_OpenStorePage>(this, static (w, m) =>
         {
             var dialog = new Store_Window_View
             {
-                DataContext = new StoreViewModel_Class()
+                DataContext = new Store_PreviewPanel_ViewModel()
             };
             m.Reply(dialog.ShowDialog<Album_ViewModel?>(w));
         });

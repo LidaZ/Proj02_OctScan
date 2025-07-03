@@ -10,8 +10,8 @@
     d:DesignHeight="600"
     d:DesignWidth="600"
     mc:Ignorable="d"
-    x:Class="OctVisionEngine.Views.MainWindow"
-    x:DataType="vm:MainWindowViewModel"
+    x:Class="OctVisionEngine.Views.MainWindow_View"
+    x:DataType="vm:MainWindow_ViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -23,7 +23,7 @@
             This only sets the DataContext for the previewer in an IDE,
             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs)
         -->
-        <vm:MainWindowViewModel />
+        <vm:MainWindow_ViewModel />
     </Design.DataContext>
 
     <!--  <TextBlock  -->
@@ -42,7 +42,7 @@
             </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
 
-        <Panel Margin="30">
+        <Panel Margin="50,50">
             <!--  Button to open store gallery  -->
             <Button
                 Command="{Binding Command_OpenStoreWindow_Command}"

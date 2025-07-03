@@ -13,9 +13,10 @@ using CommunityToolkit.Mvvm.Messaging;
 
 namespace OctVisionEngine.ViewModels
 {
-    public partial class StoreViewModel_Class : ViewModelBase
+    public partial class Store_PreviewPanel_ViewModel : ViewModelBase
     {
         // StoreViewModel : ObservableObject
+        private CancellationTokenSource? _cancellationTokenSource; 
         [ObservableProperty]
         public partial string? SearchText { get; set; }
         
@@ -36,17 +37,24 @@ namespace OctVisionEngine.ViewModels
 
         private async Task DoSearch(string? term)
         {
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _cancellationTokenSource.Token;
+            
             IsBusy = true;
             SearchListUpdate_event.Clear();
-
             var albums = await Album.SearchAsync(term);
-
             foreach (var album in albums)
             {
                 var vm = new Album_ViewModel(album);
                 SearchListUpdate_event.Add(vm);
             }
 
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                LoadCovers(cancellationToken);
+            }
+            
             IsBusy = false;
         }
         
@@ -54,8 +62,19 @@ namespace OctVisionEngine.ViewModels
         {
             _ = DoSearch(SearchText);
         }
-        
-        // public StoreViewModel_Class()
+
+        private async void LoadCovers(CancellationToken cancellationToken)
+        {
+            foreach (var album in SearchListUpdate_event.ToList())
+            {
+                await album.LoadCover();
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+            }
+        }
+        // public Store_PreviewPanel_ViewModel()
         // {
         //     SearchListUpdate_event.Add(new Album_ViewModel());
         //     SearchListUpdate_event.Add(new Album_ViewModel());
