@@ -1,17 +1,28 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
-using OctVisionEngine.ViewModels;
-using CommunityToolkit.Mvvm.Messaging;
-using OctVisionEngine.Messages;
+using Avalonia.Styling;
+using OctVisionEngine.Extensions; // 添加扩展方法的引用
 
 
-namespace OctVisionEngine.Views;
 
-public partial class Text_Window_View : Window
+namespace OctVisionEngine.Views
 {
-    public Text_Window_View()
+    public partial class Text_Window_View : Window
     {
-        InitializeComponent();
+        public Text_Window_View()
+        {
+            InitializeComponent();
+        }
+
+        private void Rectangle_OnPointerPressed(object sender, PointerPressedEventArgs e)
+        {
+            if (sender is Rectangle rectangle)
+            {
+                rectangle.Classes.Toggle("selected");
+            }
+        }
     }
 }

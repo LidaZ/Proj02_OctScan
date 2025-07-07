@@ -72,13 +72,77 @@
             VerticalAlignment="Top"
             Width="40" />
 
-        <Image
-            Height="440"
+        <Grid
+            Height="{Binding ImageHeight}"
             HorizontalAlignment="Left"
             Margin="8,56,0,0"
-            Source="{Binding EnfaceLoad}"
             VerticalAlignment="Top"
-            Width="360" />
+            Width="{Binding ImageWidth}">
+            <!--  底层图片  -->
+            <Image
+                HorizontalAlignment="Stretch"
+                Source="{Binding EnfaceLoad}"
+                Stretch="Fill"
+                VerticalAlignment="Stretch" />
+            <!--  上层网格  -->
+            <ItemsControl
+                HorizontalAlignment="Stretch"
+                ItemsSource="{Binding RectangleItems}"
+                VerticalAlignment="Stretch">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Rectangle PointerPressed="Rectangle_OnPointerPressed" x:Name="rect">
+                            <Rectangle.Styles>
+                                <Style Selector="Rectangle">
+                                    <Setter Property="Fill" Value="#00D4D4D4" />
+                                    <Setter Property="Stroke" Value="#FF39BCE8" />
+                                    <Setter Property="StrokeThickness" Value="1" />
+                                </Style>
+                                <Style Selector="Rectangle.selected">
+                                    <Setter Property="Fill" Value="#543A9ED4" />
+                                </Style>
+                            </Rectangle.Styles>
+                        </Rectangle>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="{Binding SplitFactor}" Rows="{Binding SplitFactor}" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </Grid>
+        <!--  <NumericUpDown  -->
+        <!--  ClipValueToMinMax="True"  -->
+        <!--  FormatString="F0"  -->
+        <!--  Height="32"  -->
+        <!--  Margin="728,224,0,0"  -->
+        <!--  Maximum="10"  -->
+        <!--  Minimum="1"  -->
+        <!--  ShowButtonSpinner="True"  -->
+        <!--  Value="{Binding SplitFactor}"  -->
+        <!--  Width="120" />  -->
+        <!--  Scan range (mm)  -->
+        <Slider
+            Height="32"
+            HorizontalAlignment="Left"
+            IsSnapToTickEnabled="True"
+            Margin="728,176,0,0"
+            Maximum="6"
+            Minimum="1"
+            TickFrequency="1"
+            Value="{Binding ScanRangeValue}"
+            VerticalAlignment="Top"
+            Width="152" />
+        <TextBlock
+            FontSize="16"
+            Height="32"
+            HorizontalAlignment="Left"
+            Margin="728,144,0,0"
+            Text="{Binding ScanRangeText}"
+            TextAlignment="Center"
+            VerticalAlignment="Top" />
+
 
         <Image
             HorizontalAlignment="Left"
@@ -96,21 +160,7 @@
             <ListBoxItem Content="Data_1" IsSelected="True" />
             <ListBoxItem Content="Data_2" />
         </ListBox>
-        <Slider
-            Height="32"
-            HorizontalAlignment="Left"
-            Margin="728,176,0,0"
-            Value="4"
-            VerticalAlignment="Top"
-            Width="152" />
-        <TextBlock
-            FontSize="16"
-            Height="32"
-            HorizontalAlignment="Left"
-            Margin="728,144,0,0"
-            Text="Scan Range (mm)"
-            TextAlignment="Center"
-            VerticalAlignment="Top" />
+
         <TextBlock
             FontSize="16"
             Height="24"
@@ -173,87 +223,87 @@
             VerticalAlignment="Top"
             Width="88" />
 
-        <Rectangle
-            Fill="#00D4D4D4"
-            Height="120"
-            HorizontalAlignment="Left"
-            Margin="128,56,0,0"
-            Stroke="#FF39BCE8"
-            StrokeThickness="1"
-            VerticalAlignment="Top"
-            Width="120" />
-        <Rectangle
-            Fill="#00D4D4D4"
-            Height="120"
-            HorizontalAlignment="Left"
-            Margin="8,56,0,0"
-            Stroke="#FF39BCE8"
-            StrokeThickness="1"
-            VerticalAlignment="Top"
-            Width="120" />
-        <Rectangle
-            Fill="#00D4D4D4"
-            Height="120"
-            HorizontalAlignment="Left"
-            Margin="248,56,0,0"
-            Stroke="#FF39BCE8"
-            StrokeThickness="1"
-            VerticalAlignment="Top"
-            Width="120" />
-        <Rectangle
-            Fill="#00D4D4D4"
-            Height="120"
-            HorizontalAlignment="Left"
-            Margin="8,176,0,0"
-            Stroke="#FF39BCE8"
-            StrokeThickness="1"
-            VerticalAlignment="Top"
-            Width="120" />
-        <Rectangle
-            Fill="#543A9ED4"
-            Height="120"
-            HorizontalAlignment="Left"
-            Margin="128,176,0,0"
-            Stroke="#FF39BCE8"
-            StrokeThickness="1"
-            VerticalAlignment="Top"
-            Width="120" />
-        <Rectangle
-            Fill="#00D4D4D4"
-            Height="120"
-            HorizontalAlignment="Left"
-            Margin="248,176,0,0"
-            Stroke="#FF39BCE8"
-            StrokeThickness="1"
-            VerticalAlignment="Top"
-            Width="120" />
-        <Rectangle
-            Fill="#00D4D4D4"
-            Height="112"
-            HorizontalAlignment="Left"
-            Margin="8,296,0,0"
-            Stroke="#FF39BCE8"
-            StrokeThickness="1"
-            VerticalAlignment="Top"
-            Width="120" />
-        <Rectangle
-            Fill="#00D4D4D4"
-            Height="112"
-            HorizontalAlignment="Left"
-            Margin="128,296,0,0"
-            Stroke="#FF39BCE8"
-            StrokeThickness="1"
-            VerticalAlignment="Top"
-            Width="120" />
-        <Rectangle
-            Fill="#00D4D4D4"
-            Height="112"
-            HorizontalAlignment="Left"
-            Margin="248,296,0,0"
-            Stroke="#FF39BCE8"
-            StrokeThickness="1"
-            VerticalAlignment="Top"
-            Width="120" />
+        <!--  <Rectangle  -->
+        <!--  Fill="#00D4D4D4"  -->
+        <!--  Height="120"  -->
+        <!--  HorizontalAlignment="Left"  -->
+        <!--  Margin="128,56,0,0"  -->
+        <!--  Stroke="#FF39BCE8"  -->
+        <!--  StrokeThickness="1"  -->
+        <!--  VerticalAlignment="Top"  -->
+        <!--  Width="120" />  -->
+        <!--  <Rectangle  -->
+        <!--  Fill="#00D4D4D4"  -->
+        <!--  Height="120"  -->
+        <!--  HorizontalAlignment="Left"  -->
+        <!--  Margin="8,56,0,0"  -->
+        <!--  Stroke="#FF39BCE8"  -->
+        <!--  StrokeThickness="1"  -->
+        <!--  VerticalAlignment="Top"  -->
+        <!--  Width="120" />  -->
+        <!--  <Rectangle  -->
+        <!--  Fill="#00D4D4D4"  -->
+        <!--  Height="120"  -->
+        <!--  HorizontalAlignment="Left"  -->
+        <!--  Margin="248,56,0,0"  -->
+        <!--  Stroke="#FF39BCE8"  -->
+        <!--  StrokeThickness="1"  -->
+        <!--  VerticalAlignment="Top"  -->
+        <!--  Width="120" />  -->
+        <!--  <Rectangle  -->
+        <!--  Fill="#00D4D4D4"  -->
+        <!--  Height="120"  -->
+        <!--  HorizontalAlignment="Left"  -->
+        <!--  Margin="8,176,0,0"  -->
+        <!--  Stroke="#FF39BCE8"  -->
+        <!--  StrokeThickness="1"  -->
+        <!--  VerticalAlignment="Top"  -->
+        <!--  Width="120" />  -->
+        <!--  <Rectangle  -->
+        <!--  Fill="#543A9ED4"  -->
+        <!--  Height="120"  -->
+        <!--  HorizontalAlignment="Left"  -->
+        <!--  Margin="128,176,0,0"  -->
+        <!--  Stroke="#FF39BCE8"  -->
+        <!--  StrokeThickness="1"  -->
+        <!--  VerticalAlignment="Top"  -->
+        <!--  Width="120" />  -->
+        <!--  <Rectangle  -->
+        <!--  Fill="#00D4D4D4"  -->
+        <!--  Height="120"  -->
+        <!--  HorizontalAlignment="Left"  -->
+        <!--  Margin="248,176,0,0"  -->
+        <!--  Stroke="#FF39BCE8"  -->
+        <!--  StrokeThickness="1"  -->
+        <!--  VerticalAlignment="Top"  -->
+        <!--  Width="120" />  -->
+        <!--  <Rectangle  -->
+        <!--  Fill="#00D4D4D4"  -->
+        <!--  Height="112"  -->
+        <!--  HorizontalAlignment="Left"  -->
+        <!--  Margin="8,296,0,0"  -->
+        <!--  Stroke="#FF39BCE8"  -->
+        <!--  StrokeThickness="1"  -->
+        <!--  VerticalAlignment="Top"  -->
+        <!--  Width="120" />  -->
+        <!--  <Rectangle  -->
+        <!--  Fill="#00D4D4D4"  -->
+        <!--  Height="112"  -->
+        <!--  HorizontalAlignment="Left"  -->
+        <!--  Margin="128,296,0,0"  -->
+        <!--  Stroke="#FF39BCE8"  -->
+        <!--  StrokeThickness="1"  -->
+        <!--  VerticalAlignment="Top"  -->
+        <!--  Width="120" />  -->
+        <!--  <Rectangle  -->
+        <!--  Fill="#00D4D4D4"  -->
+        <!--  Height="112"  -->
+        <!--  HorizontalAlignment="Left"  -->
+        <!--  Margin="248,296,0,0"  -->
+        <!--  Stroke="#FF39BCE8"  -->
+        <!--  StrokeThickness="1"  -->
+        <!--  VerticalAlignment="Top"  -->
+        <!--  Width="120" />  -->
 
         <Rectangle
             Fill="#63CFB917"
