@@ -32,7 +32,7 @@ public class Album // 文件名相同，声明这里是构造函数，用来保�
         {
             return Enumerable.Empty<Album>();
         }
-
+    
         var query = await s_SearchManager.GetAlbumsAsync(searchTerm)
             .ConfigureAwait(false);
 

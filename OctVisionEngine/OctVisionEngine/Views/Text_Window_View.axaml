@@ -1,12 +1,12 @@
 ﻿<Window
     ExtendClientAreaToDecorationsHint="True"
-    Height="300"
+    Height="552"
     Title="AlbumWindow"
     TransparencyLevelHint="AcrylicBlur"
-    Width="300"
+    Width="1360"
     WindowStartupLocation="CenterOwner"
-    d:DesignHeight="200"
-    d:DesignWidth="200"
+    d:DesignHeight="552"
+    d:DesignWidth="1360"
     mc:Ignorable="d"
     x:Class="OctVisionEngine.Views.Text_Window_View"
     x:DataType="viewModels:Text_Window_ViewModel"
@@ -14,30 +14,268 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModels="clr-namespace:OctVisionEngine.ViewModels"
+    xmlns:vm="using:OctVisionEngine.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- <Design.DataContext> -->
     <!--  <Vi  -->
     <!-- </Design.DataContext> -->
 
-    <Panel>
-        <ExperimentalAcrylicBorder IsHitTestVisible="False">
-            <ExperimentalAcrylicBorder.Material>
-                <ExperimentalAcrylicMaterial
-                    BackgroundSource="Digger"
-                    MaterialOpacity="0.65"
-                    TintColor="Black"
-                    TintOpacity="1" />
-            </ExperimentalAcrylicBorder.Material>
-        </ExperimentalAcrylicBorder>
+    <!-- <Panel> -->
+    <!--     <ExperimentalAcrylicBorder IsHitTestVisible="False"> -->
+    <!--         <ExperimentalAcrylicBorder.Material> -->
+    <!--  <ExperimentalAcrylicMaterial  -->
+    <!--  BackgroundSource="Digger"  -->
+    <!--  MaterialOpacity="0.65"  -->
+    <!--  TintColor="Black"  -->
+    <!--  TintOpacity="1" />  -->
+    <!--         </ExperimentalAcrylicBorder.Material> -->
+    <!--     </ExperimentalAcrylicBorder> -->
+    <!--    -->
+    <!--     <Grid> -->
+    <!--  <TextBlock  -->
+    <!--  FontSize="15"  -->
+    <!--  HorizontalAlignment="Center"  -->
+    <!--  Text="Welcome Text Test #2"  -->
+    <!--  VerticalAlignment="Center" />  -->
+    <!--     </Grid> -->
+    <!-- </Panel> -->
 
-        <Grid>
-            <TextBlock
-                FontSize="15"
-                HorizontalAlignment="Center"
-                Text="Welcome Text Test #2"
-                VerticalAlignment="Center" />
+    <Grid Background="{DynamicResource Theme_BackgroundBrush}" Height="521">
+        <Grid
+            Background="#FFF0F0F0"
+            Height="32"
+            HorizontalAlignment="Left"
+            Margin="8,16,0,0"
+            VerticalAlignment="Top"
+            Width="696">
+            <Button
+                Content="Edit"
+                Height="32"
+                HorizontalAlignment="Left"
+                Margin="41,0,0,0"
+                VerticalAlignment="Top"
+                Width="40" />
+            <Button
+                Content="Analy"
+                Height="32"
+                HorizontalAlignment="Left"
+                Margin="82,0,0,0"
+                VerticalAlignment="Top"
+                Width="53" />
         </Grid>
-    </Panel>
+        <Button
+            Content="File"
+            Height="32"
+            HorizontalAlignment="Left"
+            Margin="8,16,0,0"
+            VerticalAlignment="Top"
+            Width="40" />
+
+        <Image
+            Height="440"
+            HorizontalAlignment="Left"
+            Margin="8,56,0,0"
+            Source="{Binding EnfaceLoad}"
+            VerticalAlignment="Top"
+            Width="360" />
+
+        <Image
+            HorizontalAlignment="Left"
+            Margin="448,56,0,0"
+            Source="{Binding BscaLoad}"
+            Stretch="Fill"
+            VerticalAlignment="Top"
+            Width="256" />
+        <ListBox
+            Height="120"
+            HorizontalAlignment="Left"
+            Margin="728,16,0,0"
+            VerticalAlignment="Top"
+            Width="360">
+            <ListBoxItem Content="Data_1" IsSelected="True" />
+            <ListBoxItem Content="Data_2" />
+        </ListBox>
+        <Slider
+            Height="32"
+            HorizontalAlignment="Left"
+            Margin="728,176,0,0"
+            Value="4"
+            VerticalAlignment="Top"
+            Width="152" />
+        <TextBlock
+            FontSize="16"
+            Height="32"
+            HorizontalAlignment="Left"
+            Margin="728,144,0,0"
+            Text="Scan Range (mm)"
+            TextAlignment="Center"
+            VerticalAlignment="Top" />
+        <TextBlock
+            FontSize="16"
+            Height="24"
+            HorizontalAlignment="Left"
+            Margin="960,144,0,0"
+            Text="Sampling pixel"
+            VerticalAlignment="Top" />
+        <Slider
+            Height="32"
+            HorizontalAlignment="Left"
+            Margin="960,176,0,0"
+            Value="3"
+            VerticalAlignment="Top"
+            Width="120" />
+        <ProgressBar
+            Height="16"
+            HorizontalAlignment="Left"
+            Margin="744,448,0,0"
+            Maximum="100"
+            MinHeight="14"
+            MinWidth="100"
+            Minimum="1"
+            Value="25"
+            VerticalAlignment="Top"
+            Width="344" />
+        <TextBlock
+            FontSize="14"
+            Height="24"
+            HorizontalAlignment="Left"
+            Margin="744,464,0,0"
+            Text="Data acquiring......"
+            VerticalAlignment="Top" />
+        <Viewbox
+            Height="100"
+            HorizontalAlignment="Left"
+            Margin="208,496,0,0"
+            Stretch="Uniform"
+            VerticalAlignment="Top"
+            Width="300" />
+        <NumericUpDown
+            FontSize="13"
+            Height="32"
+            HorizontalAlignment="Left"
+            Margin="944,248,0,0"
+            Value="1"
+            VerticalAlignment="Top"
+            Width="0" />
+        <TextBlock
+            FontSize="16"
+            Height="24"
+            HorizontalAlignment="Left"
+            Margin="968,224,0,0"
+            Text="Raster "
+            VerticalAlignment="Top" />
+        <Button
+            Content="2-D / 3-D"
+            Height="32"
+            HorizontalAlignment="Left"
+            Margin="168,16,0,0"
+            VerticalAlignment="Top"
+            Width="88" />
+
+        <Rectangle
+            Fill="#00D4D4D4"
+            Height="120"
+            HorizontalAlignment="Left"
+            Margin="128,56,0,0"
+            Stroke="#FF39BCE8"
+            StrokeThickness="1"
+            VerticalAlignment="Top"
+            Width="120" />
+        <Rectangle
+            Fill="#00D4D4D4"
+            Height="120"
+            HorizontalAlignment="Left"
+            Margin="8,56,0,0"
+            Stroke="#FF39BCE8"
+            StrokeThickness="1"
+            VerticalAlignment="Top"
+            Width="120" />
+        <Rectangle
+            Fill="#00D4D4D4"
+            Height="120"
+            HorizontalAlignment="Left"
+            Margin="248,56,0,0"
+            Stroke="#FF39BCE8"
+            StrokeThickness="1"
+            VerticalAlignment="Top"
+            Width="120" />
+        <Rectangle
+            Fill="#00D4D4D4"
+            Height="120"
+            HorizontalAlignment="Left"
+            Margin="8,176,0,0"
+            Stroke="#FF39BCE8"
+            StrokeThickness="1"
+            VerticalAlignment="Top"
+            Width="120" />
+        <Rectangle
+            Fill="#543A9ED4"
+            Height="120"
+            HorizontalAlignment="Left"
+            Margin="128,176,0,0"
+            Stroke="#FF39BCE8"
+            StrokeThickness="1"
+            VerticalAlignment="Top"
+            Width="120" />
+        <Rectangle
+            Fill="#00D4D4D4"
+            Height="120"
+            HorizontalAlignment="Left"
+            Margin="248,176,0,0"
+            Stroke="#FF39BCE8"
+            StrokeThickness="1"
+            VerticalAlignment="Top"
+            Width="120" />
+        <Rectangle
+            Fill="#00D4D4D4"
+            Height="112"
+            HorizontalAlignment="Left"
+            Margin="8,296,0,0"
+            Stroke="#FF39BCE8"
+            StrokeThickness="1"
+            VerticalAlignment="Top"
+            Width="120" />
+        <Rectangle
+            Fill="#00D4D4D4"
+            Height="112"
+            HorizontalAlignment="Left"
+            Margin="128,296,0,0"
+            Stroke="#FF39BCE8"
+            StrokeThickness="1"
+            VerticalAlignment="Top"
+            Width="120" />
+        <Rectangle
+            Fill="#00D4D4D4"
+            Height="112"
+            HorizontalAlignment="Left"
+            Margin="248,296,0,0"
+            Stroke="#FF39BCE8"
+            StrokeThickness="1"
+            VerticalAlignment="Top"
+            Width="120" />
+
+        <Rectangle
+            Fill="#63CFB917"
+            Height="16"
+            HorizontalAlignment="Left"
+            Margin="448,272,0,0"
+            Stroke="#FF39BCE8"
+            StrokeThickness="1"
+            VerticalAlignment="Top"
+            Width="256" />
+        <Button
+            Background="#FF28D439"
+            Command="{Binding Interface_EnfaceImageCommand}"
+            Content="Start"
+            FontSize="18"
+            FontWeight="Bold"
+            Foreground="#FF141212"
+            Height="56"
+            HorizontalAlignment="Left"
+            Margin="744,360,0,0"
+            VerticalAlignment="Top"
+            Width="64" />
+    </Grid>
 
 </Window>
