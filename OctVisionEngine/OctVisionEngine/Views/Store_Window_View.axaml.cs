@@ -24,5 +24,10 @@ public partial class Store_Window_View : Window
             };
             m.Reply(dialogStoreWindow.ShowDialog<Text_Window_ViewModel?>(w));
         });
+        
+        WeakReferenceMessenger.Default.Register<Store_Window_View, Message_CloseStoreWindow> 
+        (this, static (Window, message) =>
+            { Window.Close(message.SelectedAlbum); }
+        );
     }
 }

@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.Messaging;
 using OctVisionEngine.Messages;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
+using Tmds.DBus.Protocol;
+using OctVisionEngine.Models;
+// using Avalonia.Controls;
+// using Avalonia.Controls.ApplicationLifetimes;
 
 namespace OctVisionEngine.ViewModels
 {

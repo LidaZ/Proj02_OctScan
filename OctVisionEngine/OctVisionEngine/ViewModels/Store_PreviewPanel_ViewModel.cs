@@ -15,7 +15,6 @@ namespace OctVisionEngine.ViewModels
 {
     public partial class Store_PreviewPanel_ViewModel : ViewModelBase
     {
-        // StoreViewModel : ObservableObject
         private CancellationTokenSource? _cancellationTokenSource; 
         [ObservableProperty]
         public partial string? SearchText { get; set; }
@@ -30,20 +29,26 @@ namespace OctVisionEngine.ViewModels
 
         [RelayCommand]
         private async Task StoreViewModel_OpenAlbumWindow_Async()
-        {
-            // Code here will be executed when the buttom being pressed. Re-emerge test. 
-            var tmp = await WeakReferenceMessenger.Default.Send(new Messages_OpenTextWindow());
-        }
+        { var tmp = await WeakReferenceMessenger.Default.Send(new Messages_OpenTextWindow()); }
 
+        [RelayCommand]
+        private void BuyMusic()
+        {
+            if (SelectedAlbum != null)
+            {
+                WeakReferenceMessenger.Default.Send(new Message_CloseStoreWindow(SelectedAlbum));
+            }
+        }
+        
         private async Task DoSearch(string? term)
         {
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource = new CancellationTokenSource();
-            var cancellationToken = _cancellationTokenSource.Token;
-            
+            _cancellationTokenSource?.Cancel(); //取消之前标记为'_cancellationTokenSource'的异步操作(如果有的话)
+            _cancellationTokenSource = new CancellationTokenSource();//创建新的取消标记(重置)
+            var cancellationToken = _cancellationTokenSource.Token;//
             IsBusy = true;
+            
             SearchListUpdate_event.Clear();
-            var albums = await Album.SearchAsync(term);
+            var albums = await Album.SearchAsync(term);//新的异步操作
             foreach (var album in albums)
             {
                 var vm = new Album_ViewModel(album);
@@ -51,17 +56,13 @@ namespace OctVisionEngine.ViewModels
             }
 
             if (!cancellationToken.IsCancellationRequested)
-            {
-                LoadCovers(cancellationToken);
-            }
+            { LoadCovers(cancellationToken); }
             
             IsBusy = false;
         }
         
         partial void OnSearchTextChanged(string? value)
-        {
-            _ = DoSearch(SearchText);
-        }
+        { _ = DoSearch(SearchText); }
 
         private async void LoadCovers(CancellationToken cancellationToken)
         {
@@ -69,9 +70,7 @@ namespace OctVisionEngine.ViewModels
             {
                 await album.LoadCover();
                 if (cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
+                { return; }
             }
         }
         // public Store_PreviewPanel_ViewModel()

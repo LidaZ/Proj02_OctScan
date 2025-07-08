@@ -16,7 +16,8 @@
             <ProgressBar IsIndeterminate="True" />
         </StackPanel>
         <Button
-            Content="Select bottom (test)"
+            Command="{Binding BuyMusicCommand}"
+            Content="Select item (test)"
             DockPanel.Dock="Bottom"
             HorizontalAlignment="Center" />
         <ListBox

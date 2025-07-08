@@ -30,7 +30,6 @@ namespace OctVisionEngine.ViewModels
         private double _scanRangeValue = 1; // 初始值设为1
         [ObservableProperty]
         private string _scanRangeText = "Scan Range: 1 mm";
-
         [ObservableProperty]
         private int _splitFactor = 1; 
 
@@ -45,7 +44,6 @@ namespace OctVisionEngine.ViewModels
         {
             Interface_EnfaceImageCommand = new RelayCommand(GetEnfaceImage);
             UpdateRectangles();
-
         }
 
         public IRelayCommand Interface_EnfaceImageCommand { get; }
