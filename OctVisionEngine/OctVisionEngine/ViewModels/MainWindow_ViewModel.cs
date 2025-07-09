@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -23,6 +24,8 @@ namespace OctVisionEngine.ViewModels
         
         [ObservableProperty] 
         private Bitmap? _displayImage;
+
+        public ObservableCollection<Album_ViewModel> Albums { get; } = new();
         
         public MainWindow_ViewModel()
         {
@@ -31,6 +34,14 @@ namespace OctVisionEngine.ViewModels
         }
         
         public IRelayCommand LoadImageCommand { get; }
+
+        [RelayCommand]
+        private async Task AddAlbumAsync()
+        {
+            var album = await WeakReferenceMessenger.Default.Send(new Message_PurchaseToOpenStorePage());
+            if (album != null)
+            {Albums.Add(album);}
+        }
 
         private void LoadImage()
         {
@@ -44,12 +55,7 @@ namespace OctVisionEngine.ViewModels
 
         [RelayCommand]
         private async Task Command_OpenStoreWindow_Async()
-        {
-            // Code here will be executed when the buttom being pressed. Re-emerge test. 
-            // GetInput();
-            // CalToOutput();
-            var album = await WeakReferenceMessenger.Default.Send(new Message_OpenStorePage());
-        }
+        { var album = await WeakReferenceMessenger.Default.Send(new Message_PurchaseToOpenStorePage()); }
 
         // [RelayCommand]
         // private async Task LoadImagePopWindow_Async()

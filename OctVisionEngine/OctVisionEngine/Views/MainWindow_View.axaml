@@ -15,6 +15,7 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:views="clr-namespace:OctVisionEngine.Views"
     xmlns:vm="using:OctVisionEngine.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
@@ -26,10 +27,19 @@
         <vm:MainWindow_ViewModel />
     </Design.DataContext>
 
-    <!--  <TextBlock  -->
-    <!--  HorizontalAlignment="Center"  -->
-    <!--  Text="{Binding Greeting}"  -->
-    <!--  VerticalAlignment="Center" />  -->
+    <!--  Style template for an image display panel (only applicable in this window)  -->
+    <Window.Styles>
+        <Style Selector="Border.image-container">
+            <Setter Property="BorderBrush" Value="DimGray" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="Margin" Value="10" />
+        </Style>
+
+        <Style Selector="Border.image-container &gt; Image">
+            <Setter Property="Stretch" Value="Uniform" />
+        </Style>
+    </Window.Styles>
+
 
     <Panel>
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
@@ -42,7 +52,7 @@
             </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
 
-        <Panel Margin="50,50">
+        <Panel Margin="50">
             <!--  Button to open store gallery  -->
             <Button
                 Command="{Binding Command_OpenStoreWindow_Command}"
@@ -52,27 +62,59 @@
             </Button>
         </Panel>
 
-        <StackPanel
-            Height="600"
-            Margin="30"
-            Spacing="10">
-            <TextBox
-                IsReadOnly="True"
-                Text="Image file path"
-                Watermark="Selected image path" />
-            <Button
-                Command="{Binding LoadImageCommand}"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top">
-                <PathIcon Data="{StaticResource image_add_regular}" />
-            </Button>
-            <Border
-                BorderBrush="Gray"
-                BorderThickness="1"
-                Margin="10">
-                <Image Source="{Binding DisplayImage}" Stretch="Uniform" />
+        <DockPanel
+            Height="400"
+            HorizontalAlignment="Left"
+            Margin="10,10"
+            VerticalAlignment="Top"
+            Width="300">
+
+            <DockPanel
+                DockPanel.Dock="Top"
+                LastChildFill="True"
+                Margin="0,10">
+                <Button
+                    Command="{Binding LoadImageCommand}"
+                    DockPanel.Dock="Right"
+                    Margin="5,0,0,0">
+                    <PathIcon Data="{StaticResource image_add_regular}" />
+                </Button>
+
+                <TextBox
+                    IsReadOnly="True"
+                    Text="Image file path"
+                    Watermark="Selected image path" />
+            </DockPanel>
+
+            <!--  这个Border会自动填充DockPanel的剩余空间  -->
+            <Border Classes="image-container">
+                <Image Source="{Binding DisplayImage}" />
             </Border>
-        </StackPanel>
+        </DockPanel>
+
+
+        <Panel
+            Height="500"
+            HorizontalAlignment="Right"
+            Margin="20"
+            VerticalAlignment="Bottom"
+            Width="500">
+            <ScrollViewer Margin="0,40,0,0" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Albums}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <views:Album_View Margin="0,0,20,20" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Panel>
 
         <!-- <Grid RowDefinitions="Auto, *"> -->
         <!--  <Border  -->

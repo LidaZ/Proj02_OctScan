@@ -20,7 +20,7 @@ public partial class MainWindow_View : Window
         // }
         if (Design.IsDesignMode)
             return;
-        WeakReferenceMessenger.Default.Register<MainWindow_View, Message_OpenStorePage>
+        WeakReferenceMessenger.Default.Register<MainWindow_View, Message_PurchaseToOpenStorePage>
             (this, static (w, m) =>
                 { var dialog = new Store_Window_View
                     { DataContext = new Store_PreviewPanel_ViewModel() };
