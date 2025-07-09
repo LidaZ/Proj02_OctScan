@@ -5,8 +5,8 @@
     TransparencyLevelHint="AcrylicBlur"
     Width="900"
     WindowStartupLocation="CenterOwner"
-    d:DesignHeight="450"
-    d:DesignWidth="600"
+    d:DesignHeight="500"
+    d:DesignWidth="900"
     mc:Ignorable="d"
     x:Class="OctVisionEngine.Views.Store_Window_View"
     x:DataType="viewModels:Store_PreviewPanel_ViewModel"
@@ -36,27 +36,59 @@
             </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
 
-        <Panel Margin="10">
-            <Button
-                Command="{Binding StoreViewModel_OpenAlbumWindow_Command}"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Bottom">
-                <PathIcon Data="{StaticResource settings_regular}" />
-            </Button>
-        </Panel>
+        <!-- <Panel Margin="10"> -->
+        <!--  <Button  -->
+        <!--  Command="{Binding StoreViewModel_OpenAlbumWindow_Command}"  -->
+        <!--  HorizontalAlignment="Center"  -->
+        <!--  VerticalAlignment="Bottom">  -->
+        <!--         <PathIcon Data="{StaticResource settings_regular}" /> -->
+        <!--     </Button> -->
+        <!-- </Panel> -->
 
-        <Panel
+        <!--  <Panel  -->
+        <!--  HorizontalAlignment="Center"  -->
+        <!--  Margin="30"  -->
+        <!--  VerticalAlignment="Top">  -->
+        <!--     <StackPanel> -->
+        <!--         <TextBlock Text="Click to open Text window" /> -->
+        <!--     </StackPanel> -->
+        <!-- </Panel> -->
+
+        <!-- <Panel Margin="40"> -->
+        <!--     <views:Store_PreviewPanel_View /> -->
+        <!-- </Panel> -->
+
+        <DockPanel
+            Height="450"
             HorizontalAlignment="Center"
-            Margin="30"
-            VerticalAlignment="Top">
-            <StackPanel>
-                <TextBlock Text="Click to open Text window" />
-            </StackPanel>
-        </Panel>
+            LastChildFill="True"
+            VerticalAlignment="Center"
+            Width="750">
+            <DockPanel
+                DockPanel.Dock="Bottom"
+                LastChildFill="True"
+                Margin="5">
+                <Button
+                    Command="{Binding StoreViewModel_OpenAlbumWindow_Command}"
+                    DockPanel.Dock="Right"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,5,0"
+                    VerticalAlignment="Bottom">
+                    <PathIcon Data="{StaticResource settings_regular}" />
+                </Button>
 
-        <Panel Margin="70">
-            <views:Store_PreviewPanel_View />
-        </Panel>
+                <TextBlock
+                    Text="Click to open Text window"
+                    TextAlignment="Right"
+                    VerticalAlignment="Center" />
+            </DockPanel>
+
+            <Panel Margin="40">
+                <views:Store_PreviewPanel_View />
+            </Panel>
+        </DockPanel>
+
+
 
     </Panel>
 

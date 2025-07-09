@@ -32,9 +32,8 @@
         <Style Selector="Border.image-container">
             <Setter Property="BorderBrush" Value="DimGray" />
             <Setter Property="BorderThickness" Value="2" />
-            <Setter Property="Margin" Value="10" />
+            <Setter Property="Margin" Value="0" />
         </Style>
-
         <Style Selector="Border.image-container &gt; Image">
             <Setter Property="Stretch" Value="Uniform" />
         </Style>
@@ -52,21 +51,76 @@
             </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
 
-        <Panel Margin="50">
-            <!--  Button to open store gallery  -->
+        <DockPanel
+            Height="400"
+            HorizontalAlignment="Center"
+            LastChildFill="True"
+            Margin="10"
+            VerticalAlignment="Top"
+            Width="900">
             <Button
                 Command="{Binding Command_OpenStoreWindow_Command}"
-                HorizontalAlignment="Right"
+                DockPanel.Dock="Right"
+                Margin="20"
                 VerticalAlignment="Top">
                 <PathIcon Data="{StaticResource store_microsoft_regular}" />
             </Button>
-        </Panel>
+
+            <ScrollViewer Margin="0,40,0,0" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Albums}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <views:Album_View Margin="0,0,20,20" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+        </DockPanel>
+
+        <!--  <Button  -->
+        <!--  Command="{Binding Command_OpenStoreWindow_Command}"  -->
+        <!--  HorizontalAlignment="Right"  -->
+        <!--  Margin="20,50"  -->
+        <!--  VerticalAlignment="Top">  -->
+        <!--     <PathIcon Data="{StaticResource store_microsoft_regular}" /> -->
+        <!-- </Button> -->
+        <!--  <Panel  -->
+        <!--  Height="400"  -->
+        <!--  HorizontalAlignment="Right"  -->
+        <!--  Margin="20"  -->
+        <!--  VerticalAlignment="Bottom"  -->
+        <!--  Width="500">  -->
+        <!--     <ScrollViewer Margin="0,40,0,0" VerticalScrollBarVisibility="Auto"> -->
+        <!--         <ItemsControl ItemsSource="{Binding Albums}"> -->
+        <!--             <ItemsControl.ItemsPanel> -->
+        <!--                 <ItemsPanelTemplate> -->
+        <!--                     <WrapPanel /> -->
+        <!--                 </ItemsPanelTemplate> -->
+        <!--             </ItemsControl.ItemsPanel> -->
+        <!--    -->
+        <!--             <ItemsControl.ItemTemplate> -->
+        <!--                 <DataTemplate> -->
+        <!--                     <views:Album_View Margin="0,0,20,20" /> -->
+        <!--                 </DataTemplate> -->
+        <!--             </ItemsControl.ItemTemplate> -->
+        <!--         </ItemsControl> -->
+        <!--     </ScrollViewer> -->
+        <!-- </Panel> -->
+
+
 
         <DockPanel
-            Height="400"
+            Height="300"
             HorizontalAlignment="Left"
             Margin="10,10"
-            VerticalAlignment="Top"
+            VerticalAlignment="Bottom"
             Width="300">
 
             <DockPanel
@@ -92,47 +146,6 @@
             </Border>
         </DockPanel>
 
-
-        <Panel
-            Height="500"
-            HorizontalAlignment="Right"
-            Margin="20"
-            VerticalAlignment="Bottom"
-            Width="500">
-            <ScrollViewer Margin="0,40,0,0" VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding Albums}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <views:Album_View Margin="0,0,20,20" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </Panel>
-
-        <!-- <Grid RowDefinitions="Auto, *"> -->
-        <!--  <Border  -->
-        <!--  BorderBrush="Gray"  -->
-        <!--  BorderThickness="1"  -->
-        <!--  Grid.Row="1"  -->
-        <!--  Height="500"  -->
-        <!--  HorizontalAlignment="Left"  -->
-        <!--  Margin="10"  -->
-        <!--  VerticalAlignment="Bottom"  -->
-        <!--  Width="500">  -->
-        <!--  <Image  -->
-        <!--  HorizontalAlignment="Left"  -->
-        <!--  Source="{Binding DisplayImage}"  -->
-        <!--  Stretch="Uniform"  -->
-        <!--  VerticalAlignment="Bottom" />  -->
-        <!--     </Border> -->
-        <!-- </Grid> -->
     </Panel>
 
 
