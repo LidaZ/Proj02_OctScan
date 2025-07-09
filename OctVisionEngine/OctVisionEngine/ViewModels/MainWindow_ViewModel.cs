@@ -55,7 +55,10 @@ namespace OctVisionEngine.ViewModels
 
         [RelayCommand]
         private async Task Command_OpenStoreWindow_Async()
-        { var album = await WeakReferenceMessenger.Default.Send(new Message_PurchaseToOpenStorePage()); }
+        {
+            var album = await WeakReferenceMessenger.Default.Send(new Message_PurchaseToOpenStorePage()); 
+            await AddAlbumAsync(); 
+        }
 
         // [RelayCommand]
         // private async Task LoadImagePopWindow_Async()
