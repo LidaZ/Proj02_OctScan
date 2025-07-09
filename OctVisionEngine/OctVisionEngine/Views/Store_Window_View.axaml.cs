@@ -28,6 +28,9 @@ public partial class Store_Window_View : Window
         WeakReferenceMessenger.Default.Register<Store_Window_View, Message_CloseStoreWindow> 
         (this, static (Window, message) =>
             { Window.Close(message.SelectedAlbum); }
+            // 这里'Store_Window_View' 是作为对话框打开的（详见MainWindow_View.axaml.cs），
+            // 在Avalonia中当一个窗口作为对话框打开时,close()方法可以接受一个返回值参数。这里的返回值是'message.SelectedAlbum'。
+            // 这个返回值在MainWindow_View.axaml.cs
         );
     }
 }

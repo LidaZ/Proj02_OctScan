@@ -36,28 +36,6 @@
             </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
 
-        <!-- <Panel Margin="10"> -->
-        <!--  <Button  -->
-        <!--  Command="{Binding StoreViewModel_OpenAlbumWindow_Command}"  -->
-        <!--  HorizontalAlignment="Center"  -->
-        <!--  VerticalAlignment="Bottom">  -->
-        <!--         <PathIcon Data="{StaticResource settings_regular}" /> -->
-        <!--     </Button> -->
-        <!-- </Panel> -->
-
-        <!--  <Panel  -->
-        <!--  HorizontalAlignment="Center"  -->
-        <!--  Margin="30"  -->
-        <!--  VerticalAlignment="Top">  -->
-        <!--     <StackPanel> -->
-        <!--         <TextBlock Text="Click to open Text window" /> -->
-        <!--     </StackPanel> -->
-        <!-- </Panel> -->
-
-        <!-- <Panel Margin="40"> -->
-        <!--     <views:Store_PreviewPanel_View /> -->
-        <!-- </Panel> -->
-
         <DockPanel
             Height="450"
             HorizontalAlignment="Center"

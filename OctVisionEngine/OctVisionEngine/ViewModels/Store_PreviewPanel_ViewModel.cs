@@ -31,6 +31,9 @@ namespace OctVisionEngine.ViewModels
         private async Task StoreViewModel_OpenAlbumWindow_Async()
         { var tmp = await WeakReferenceMessenger.Default.Send(new Messages_OpenTextWindow()); }
 
+        //一但点击'Purchase按钮'，绑定执行BuyMusic(),这里只有一个操作，即广播Message_CloseStoreWindow（）。
+        //由于Store_PreviewPanel_View是被贴膜到Store_Window中的，所以在Store_Window_View.axaml.cs中把该消息注册给了本窗口，
+        //一但侦测到消息广播，
         [RelayCommand]
         private void BuyMusic()
         {
