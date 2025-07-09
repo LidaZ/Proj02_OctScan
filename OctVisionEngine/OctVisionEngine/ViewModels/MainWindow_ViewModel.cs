@@ -34,14 +34,7 @@ namespace OctVisionEngine.ViewModels
         }
         
         public IRelayCommand LoadImageCommand { get; }
-
-        [RelayCommand]
-        private async Task AddAlbumAsync()
-        {
-            var album = await WeakReferenceMessenger.Default.Send(new Message_PurchaseToOpenStorePage());
-            if (album != null)
-            {Albums.Add(album);}
-        }
+        
 
         private void LoadImage()
         {
@@ -53,38 +46,19 @@ namespace OctVisionEngine.ViewModels
             }
         }
 
-        [RelayCommand]
-        private async Task Command_OpenStoreWindow_Async()
+        // 这里的逻辑是在Store_Window中的“Store_Preview贴膜”中选择一个搜索结果并点击Button后，new了一个Message_CloseStoreWindow('selectedAlbum')并广播
+        // 1)在new的Message_CloseStoreWindow()中，引用了Album_ViewModel的同名类(强制初始化，把'selectedAlbum'传给自带的私密字段_album
+        // (那这里每次发消息都是new，意思是每次发消息都新建一个Album_ViewModel._album <= 'selectedAlbum'?)
+        // 2)同时，Store_Window本身的axaml.cs中对本窗口注册了Message_CloseStoreWindow()，一但收到消息广播后，触发功能：关闭本窗口
+        // 3)同时，MainWindow的View里也对本窗口注册了Message_PurchaseToOpenStorePage()，一但点击'Store按钮'就new了一个Store_PreviewPanel_ViewModel的类（？）
+        [RelayCommand] 
+        private async Task Command_OpenStoreWindowAfterPurchase_Async()
         {
             var album = await WeakReferenceMessenger.Default.Send(new Message_PurchaseToOpenStorePage()); 
-            await AddAlbumAsync(); 
+            if (album != null)
+            {Albums.Add(album);}
         }
 
-        // [RelayCommand]
-        // private async Task LoadImagePopWindow_Async()
-        // {
-        //     var dialog = new OpenFileDialog
-        //     {
-        //         Title = "select an image", AllowMultiple = false, Filters =
-        //         {
-        //             new FileDialogFilter { Name = "Image Files" }
-        //         }
-        //     };
-        //
-        //     var window = App.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-        //         ? desktop.MainWindow_View
-        //         : null;
-        //     
-        //     if (window == null)
-        //         return;
-        //
-        //     var result = await dialog.ShowAsync(window);
-        //     if (result.Length > 0 && File.Exists(result[0]))
-        //     {
-        //         ImagePath = result[0];
-        //         using var stream = File.OpenRead(ImagePath);
-        //         DisplayImage = await Task.Run(() => Bitmap.DecodeToWidth(stream, 1024)); 
-        //     }
-        // }
+        
     }
 }

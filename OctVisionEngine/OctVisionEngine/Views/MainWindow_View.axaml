@@ -59,7 +59,7 @@
             VerticalAlignment="Top"
             Width="900">
             <Button
-                Command="{Binding Command_OpenStoreWindow_Command}"
+                Command="{Binding Command_OpenStoreWindowAfterPurchase_Command}"
                 DockPanel.Dock="Right"
                 Margin="20"
                 VerticalAlignment="Top">
