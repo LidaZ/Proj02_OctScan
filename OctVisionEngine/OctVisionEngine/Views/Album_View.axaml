@@ -14,18 +14,19 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
 
-    <StackPanel Spacing="5" Width="100">
-        <Border ClipToBounds="True" CornerRadius="40">
+    <StackPanel Spacing="5" Width="120">
+        <Border ClipToBounds="True" CornerRadius="20">
             <Panel Background="CornflowerBlue">
                 <Image
+                    Height="120"
                     Source="{Binding Cover}"
                     Stretch="Uniform"
-                    Width="150" />
-                <Panel Height="100" IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}">
+                    Width="120" />
+                <Panel Height="120" IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}">
                     <PathIcon
                         Data="{StaticResource midi_regular}"
-                        Height="75"
-                        Width="75" />
+                        Height="100"
+                        Width="100" />
                 </Panel>
             </Panel>
         </Border>
