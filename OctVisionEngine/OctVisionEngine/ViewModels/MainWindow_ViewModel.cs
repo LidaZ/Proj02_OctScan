@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
@@ -16,18 +17,19 @@ namespace OctVisionEngine.ViewModels
 {
     public partial class MainWindow_ViewModel : ObservableObject
     {
+        public MainWindow_ViewModel()
+        {
+            // ViewModel initialization logic.
+            LoadAlbums();
+            LoadImageCommand = new RelayCommand(LoadImage);
+        }
+        
         private double _input;
         private double _result; 
         [ObservableProperty] private string? _imagePath;
         [ObservableProperty] private Bitmap? _displayImage;
 
         public ObservableCollection<Album_ViewModel> Albums { get; } = new();
-        
-        public MainWindow_ViewModel()
-        {
-            // ViewModel initialization logic.
-            LoadImageCommand = new RelayCommand(LoadImage);
-        }
         
         public IRelayCommand LoadImageCommand { get; }
 
@@ -60,14 +62,6 @@ namespace OctVisionEngine.ViewModels
         [RelayCommand] 
         private async Task Command_OpenStoreWindowAfterPurchase_Async()
         {
-            var album = await WeakReferenceMessenger.Default.Send(new Message_PurchaseToOpenStorePage()); 
-            if (album != null)
-            {Albums.Add(album);}
-        }
-
-        [RelayCommand]
-        private async Task AddAlbumAsync()
-        {
             var album = await WeakReferenceMessenger.Default.Send(new Message_PurchaseToOpenStorePage());
             if (album != null)
             {
@@ -75,6 +69,26 @@ namespace OctVisionEngine.ViewModels
                 await album.SaveToDiskAsync();
             }
         }
-        
+
+        // [RelayCommand]
+        // private async Task AddAlbumAsync()
+        // {
+        //     var album = await WeakReferenceMessenger.Default.Send(new Message_PurchaseToOpenStorePage());
+        //     if (album != null)
+        //     {
+        //         Albums.Add(album);
+        //         await album.SaveToDiskAsync();
+        //     }
+        // }
+
+        private async void LoadAlbums()
+        {
+            var albums = (await Album.LoadCachedAsync()).Select(x => new Album_ViewModel(x)).ToList();
+            foreach (var album in albums)
+            { Albums.Add(album); }
+
+            var coverTasks = albums.Select(album => album.LoadCover());
+            await Task.WhenAll(coverTasks);
+        }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using MsBox.Avalonia; 
 using Avalonia.Controls.Shapes;
 using Path = Avalonia.Controls.Shapes.Path;
 using iTunesSearch.Library.Models;
@@ -30,9 +31,7 @@ public class Album // 文件名相同，声明这里是构造函数，用来保�
     public static async Task<IEnumerable<Album>> SearchAsync(string? searchTerm)
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
-        {
-            return Enumerable.Empty<Album>();
-        }
+        { return Enumerable.Empty<Album>(); }
     
         var query = await s_SearchManager.GetAlbumsAsync(searchTerm)
             .ConfigureAwait(false);
@@ -67,6 +66,11 @@ public class Album // 文件名相同，声明这里是构造函数，用来保�
     {
         if (!Directory.Exists("./Cache"))
         { Directory.CreateDirectory("./Cache"); }
+        // else
+        // {
+        //     var messageBox = MessageBoxManager.GetMessageBoxStandard(title: "Warn", text:"Cache not exist.");
+        //     await messageBox.ShowAsync();
+        // }
 
         using (var fs = File.OpenWrite(CachePath))
         { await SaveToStreamAsync(this, fs); }

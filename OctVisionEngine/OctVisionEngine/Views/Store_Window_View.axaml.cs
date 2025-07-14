@@ -22,7 +22,9 @@ public partial class Store_Window_View : Window
             {
                 DataContext = new Text_Window_ViewModel()
             };
-            m.Reply(dialogStoreWindow.ShowDialog<Text_Window_ViewModel?>(w));
+            var owner = w.IsVisible ? w : null;
+            m.Reply(dialogStoreWindow.ShowDialog<Text_Window_ViewModel?>(owner));
+            // m.Reply(dialogStoreWindow.ShowDialog<Text_Window_ViewModel?>(w));
         });
         
         WeakReferenceMessenger.Default.Register<Store_Window_View, Message_CloseStoreWindow> 

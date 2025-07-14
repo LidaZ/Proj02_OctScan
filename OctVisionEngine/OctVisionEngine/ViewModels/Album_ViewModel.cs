@@ -8,7 +8,9 @@ namespace OctVisionEngine.ViewModels;
 public partial class Album_ViewModel : ViewModelBase
 {
     public Album_ViewModel(Album album) // 声明强制初始化（被调用来new一个对象）时，必须传入的参数
-    { _album = album; }
+    {
+        _album = album; 
+    }
     
     private readonly Album _album; //因为没有声明{get/set; get/set;}，所以这里是字段field. 字段一般不提供给外部调用的读写功能。
     public string Artist => _album.Artist;
