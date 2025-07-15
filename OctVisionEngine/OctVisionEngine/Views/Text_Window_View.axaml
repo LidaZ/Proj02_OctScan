@@ -17,29 +17,6 @@
     xmlns:vm="using:OctVisionEngine.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- <Design.DataContext> -->
-    <!--  <Vi  -->
-    <!-- </Design.DataContext> -->
-
-    <!-- <Panel> -->
-    <!--     <ExperimentalAcrylicBorder IsHitTestVisible="False"> -->
-    <!--         <ExperimentalAcrylicBorder.Material> -->
-    <!--  <ExperimentalAcrylicMaterial  -->
-    <!--  BackgroundSource="Digger"  -->
-    <!--  MaterialOpacity="0.65"  -->
-    <!--  TintColor="Black"  -->
-    <!--  TintOpacity="1" />  -->
-    <!--         </ExperimentalAcrylicBorder.Material> -->
-    <!--     </ExperimentalAcrylicBorder> -->
-    <!--    -->
-    <!--     <Grid> -->
-    <!--  <TextBlock  -->
-    <!--  FontSize="15"  -->
-    <!--  HorizontalAlignment="Center"  -->
-    <!--  Text="Welcome Text Test #2"  -->
-    <!--  VerticalAlignment="Center" />  -->
-    <!--     </Grid> -->
-    <!-- </Panel> -->
 
     <Grid Background="{DynamicResource Theme_BackgroundBrush}" Height="521">
         <Grid
@@ -112,17 +89,7 @@
                 </ItemsControl.ItemsPanel>
             </ItemsControl>
         </Grid>
-        <!--  <NumericUpDown  -->
-        <!--  ClipValueToMinMax="True"  -->
-        <!--  FormatString="F0"  -->
-        <!--  Height="32"  -->
-        <!--  Margin="728,224,0,0"  -->
-        <!--  Maximum="10"  -->
-        <!--  Minimum="1"  -->
-        <!--  ShowButtonSpinner="True"  -->
-        <!--  Value="{Binding SplitFactor}"  -->
-        <!--  Width="120" />  -->
-        <!--  Scan range (mm)  -->
+
         <Slider
             Height="32"
             HorizontalAlignment="Left"
@@ -222,88 +189,6 @@
             Margin="168,16,0,0"
             VerticalAlignment="Top"
             Width="88" />
-
-        <!--  <Rectangle  -->
-        <!--  Fill="#00D4D4D4"  -->
-        <!--  Height="120"  -->
-        <!--  HorizontalAlignment="Left"  -->
-        <!--  Margin="128,56,0,0"  -->
-        <!--  Stroke="#FF39BCE8"  -->
-        <!--  StrokeThickness="1"  -->
-        <!--  VerticalAlignment="Top"  -->
-        <!--  Width="120" />  -->
-        <!--  <Rectangle  -->
-        <!--  Fill="#00D4D4D4"  -->
-        <!--  Height="120"  -->
-        <!--  HorizontalAlignment="Left"  -->
-        <!--  Margin="8,56,0,0"  -->
-        <!--  Stroke="#FF39BCE8"  -->
-        <!--  StrokeThickness="1"  -->
-        <!--  VerticalAlignment="Top"  -->
-        <!--  Width="120" />  -->
-        <!--  <Rectangle  -->
-        <!--  Fill="#00D4D4D4"  -->
-        <!--  Height="120"  -->
-        <!--  HorizontalAlignment="Left"  -->
-        <!--  Margin="248,56,0,0"  -->
-        <!--  Stroke="#FF39BCE8"  -->
-        <!--  StrokeThickness="1"  -->
-        <!--  VerticalAlignment="Top"  -->
-        <!--  Width="120" />  -->
-        <!--  <Rectangle  -->
-        <!--  Fill="#00D4D4D4"  -->
-        <!--  Height="120"  -->
-        <!--  HorizontalAlignment="Left"  -->
-        <!--  Margin="8,176,0,0"  -->
-        <!--  Stroke="#FF39BCE8"  -->
-        <!--  StrokeThickness="1"  -->
-        <!--  VerticalAlignment="Top"  -->
-        <!--  Width="120" />  -->
-        <!--  <Rectangle  -->
-        <!--  Fill="#543A9ED4"  -->
-        <!--  Height="120"  -->
-        <!--  HorizontalAlignment="Left"  -->
-        <!--  Margin="128,176,0,0"  -->
-        <!--  Stroke="#FF39BCE8"  -->
-        <!--  StrokeThickness="1"  -->
-        <!--  VerticalAlignment="Top"  -->
-        <!--  Width="120" />  -->
-        <!--  <Rectangle  -->
-        <!--  Fill="#00D4D4D4"  -->
-        <!--  Height="120"  -->
-        <!--  HorizontalAlignment="Left"  -->
-        <!--  Margin="248,176,0,0"  -->
-        <!--  Stroke="#FF39BCE8"  -->
-        <!--  StrokeThickness="1"  -->
-        <!--  VerticalAlignment="Top"  -->
-        <!--  Width="120" />  -->
-        <!--  <Rectangle  -->
-        <!--  Fill="#00D4D4D4"  -->
-        <!--  Height="112"  -->
-        <!--  HorizontalAlignment="Left"  -->
-        <!--  Margin="8,296,0,0"  -->
-        <!--  Stroke="#FF39BCE8"  -->
-        <!--  StrokeThickness="1"  -->
-        <!--  VerticalAlignment="Top"  -->
-        <!--  Width="120" />  -->
-        <!--  <Rectangle  -->
-        <!--  Fill="#00D4D4D4"  -->
-        <!--  Height="112"  -->
-        <!--  HorizontalAlignment="Left"  -->
-        <!--  Margin="128,296,0,0"  -->
-        <!--  Stroke="#FF39BCE8"  -->
-        <!--  StrokeThickness="1"  -->
-        <!--  VerticalAlignment="Top"  -->
-        <!--  Width="120" />  -->
-        <!--  <Rectangle  -->
-        <!--  Fill="#00D4D4D4"  -->
-        <!--  Height="112"  -->
-        <!--  HorizontalAlignment="Left"  -->
-        <!--  Margin="248,296,0,0"  -->
-        <!--  Stroke="#FF39BCE8"  -->
-        <!--  StrokeThickness="1"  -->
-        <!--  VerticalAlignment="Top"  -->
-        <!--  Width="120" />  -->
 
         <Rectangle
             Fill="#63CFB917"

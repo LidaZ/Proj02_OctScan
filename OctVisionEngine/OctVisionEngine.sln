@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OctVisionEngine", "OctVisionEngine\OctVisionEngine.csproj", "{1DC1A576-B437-4A00-A192-B1A45258432A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestTool", "UnitTestTool\UnitTestTool.csproj", "{A4DE3DB5-627C-46CC-8127-E6B5611FA4DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{1DC1A576-B437-4A00-A192-B1A45258432A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1DC1A576-B437-4A00-A192-B1A45258432A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1DC1A576-B437-4A00-A192-B1A45258432A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4DE3DB5-627C-46CC-8127-E6B5611FA4DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4DE3DB5-627C-46CC-8127-E6B5611FA4DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4DE3DB5-627C-46CC-8127-E6B5611FA4DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4DE3DB5-627C-46CC-8127-E6B5611FA4DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
