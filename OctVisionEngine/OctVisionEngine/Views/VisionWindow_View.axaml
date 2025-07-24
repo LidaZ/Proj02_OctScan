@@ -1,0 +1,143 @@
+﻿<Window
+    Height="600"
+    Title="VisionWindow_View"
+    Width="900"
+    d:DesignHeight="600"
+    d:DesignWidth="900"
+    mc:Ignorable="d"
+    x:Class="OctVisionEngine.Views.VisionWindow_View"
+    x:DataType="vm:VisionWindow_ViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:OctVisionEngine.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--  Welcome to Avalonia!  -->
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!--  工具栏  -->
+        <Border
+            Background="#F0F0F0"
+            Grid.Row="0"
+            Padding="10">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button
+                    Command="{Binding SelectFileCommand}"
+                    Content="选择文件"
+                    IsEnabled="{Binding !IsProcessing}" />
+
+                <Button
+                    Command="{Binding StartProcessingCommand}"
+                    Content="开始处理"
+                    IsEnabled="{Binding !IsProcessing}" />
+
+                <Button
+                    Command="{Binding StopProcessingCommand}"
+                    Content="停止"
+                    IsEnabled="{Binding IsProcessing}" />
+
+                <TextBlock
+                    Margin="10,0,0,0"
+                    Text="{Binding SelectedFilePath}"
+                    VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
+        <!--  主显示区域  -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="200" />
+            </Grid.ColumnDefinitions>
+
+            <!--  图像显示区  -->
+            <Border
+                Background="Black"
+                Grid.Column="0"
+                Margin="10">
+                <Viewbox Stretch="Uniform">
+                    <Image RenderOptions.BitmapInterpolationMode="LowQuality" Source="{Binding CurrentImage}" />
+                </Viewbox>
+            </Border>
+
+            <!--  信息面板  -->
+            <Border
+                Background="#F8F8F8"
+                Grid.Column="1"
+                Margin="0,10,10,10"
+                Padding="10">
+                <StackPanel Spacing="10">
+                    <TextBlock
+                        FontSize="16"
+                        FontWeight="Bold"
+                        Text="实时信息" />
+
+                    <Border Background="#DDD" Height="1" />
+
+                    <StackPanel Spacing="5">
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="帧数: {0}">
+                                    <Binding Path="FrameCount" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="FPS: {0:F1}">
+                                    <Binding Path="Fps" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+
+                        <TextBlock Text="图像尺寸: 700×256" />
+                        <TextBlock Text="数据类型: Float32 → Uint8" />
+                        <TextBlock Text="归一化范围: [-15, 20] dB" />
+                    </StackPanel>
+
+                    <Border
+                        Background="#DDD"
+                        Height="1"
+                        Margin="0,10" />
+
+                    <TextBlock FontWeight="Bold" Text="处理参数" />
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="读取缓冲: 10 帧" />
+                        <TextBlock Text="处理缓冲: 10 帧" />
+                        <TextBlock Text="并行处理: 启用" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!--  状态栏  -->
+        <Border
+            Background="#E0E0E0"
+            Grid.Row="2"
+            Padding="5">
+            <Grid ColumnDefinitions="*,200">
+                <StackPanel
+                    Grid.Column="0"
+                    Orientation="Horizontal"
+                    Spacing="10">
+                    <TextBlock Text="状态:" VerticalAlignment="Center" />
+                    <TextBlock
+                        FontWeight="Bold"
+                        Text="{Binding StatusText}"
+                        VerticalAlignment="Center" />
+                </StackPanel>
+
+                <ProgressBar
+                    Grid.Column="1"
+                    Height="20"
+                    Margin="5,0"
+                    Maximum="100"
+                    ShowProgressText="True"
+                    Value="{Binding Progress}" />
+            </Grid>
+        </Border>
+    </Grid>
+
+</Window>

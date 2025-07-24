@@ -1,12 +1,12 @@
 ﻿<Window
     ExtendClientAreaToDecorationsHint="True"
-    Height="552"
+    Height="720"
     Title="AlbumWindow"
     TransparencyLevelHint="AcrylicBlur"
-    Width="1360"
+    Width="1080"
     WindowStartupLocation="CenterOwner"
-    d:DesignHeight="552"
-    d:DesignWidth="1360"
+    d:DesignHeight="720"
+    d:DesignWidth="1120"
     mc:Ignorable="d"
     x:Class="OctVisionEngine.Views.Text_Window_View"
     x:DataType="viewModels:Text_Window_ViewModel"
@@ -18,7 +18,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
 
-    <Grid Background="{DynamicResource Theme_BackgroundBrush}" Height="521">
+    <Grid
+        Background="{DynamicResource Theme_BackgroundBrush}"
+        Height="720"
+        Width="1080">
         <Grid
             Background="#FFF0F0F0"
             Height="32"

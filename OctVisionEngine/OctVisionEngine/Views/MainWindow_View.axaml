@@ -3,7 +3,7 @@
     ExtendClientAreaToDecorationsHint="True"
     Height="800"
     Icon="/Assets/avalonia-logo.ico"
-    Title="OctVisionEngine"
+    Title="MusicStoreTest"
     TransparencyLevelHint="AcrylicBlur"
     Width="1200"
     WindowStartupLocation="CenterScreen"

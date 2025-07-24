@@ -18,6 +18,7 @@
         <entry key="OctVisionEngine/Views/Store_Window_View.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/TextWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/Text_Window_View.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
+        <entry key="OctVisionEngine/Views/VisionWindow_Views.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
       </map>
     </option>
   </component>

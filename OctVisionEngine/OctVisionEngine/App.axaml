@@ -1,5 +1,5 @@
 <Application
-    RequestedThemeVariant="Default"
+    RequestedThemeVariant="Light"
     x:Class="OctVisionEngine.App"
     xmlns="https://github.com/avaloniaui"
     xmlns:local="using:OctVisionEngine"
