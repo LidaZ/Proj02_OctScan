@@ -6,6 +6,8 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Messaging;
 using OctVisionEngine.Messages;
+using System.Runtime.InteropServices;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace OctVisionEngine.Models;
 
@@ -14,201 +16,192 @@ namespace OctVisionEngine.Models;
 /// </summary>
 public class OctDataProcessor
 {
-    private const int Width = 700;
-        private const int Height = 256;
-        private const int FloatSize = 4;
-        private const int BlockSize = Width * Height * FloatSize;
+    public int PixelsPerAline { get; set; } = 800;
+    public int AlinesPerFrame { get; set; } = 256;
+    private readonly int _blockSize; //= PixelsPerAline * AlinesPerFrame * _floatSize;
+    private readonly float _minDb = -25f;
+    private readonly float _maxDb = 25f;
+    private readonly float _dbRange;
+    private float[,] _floatData;
+
+
+    // Channel就像工厂的传送带，可以缓冲数据
+    private readonly Channel<float[,]> _rawDataChannel;
+    private readonly Channel<byte[,]> _processedDataChannel;
+    private CancellationTokenSource _cancellationTokenSource;
+    private readonly IMessenger _messenger;
+
+    public OctDataProcessor()
+    {
+        _dbRange = _maxDb - _minDb;
+        _blockSize = PixelsPerAline * AlinesPerFrame * sizeof(float);
+        _floatData = new float[PixelsPerAline, AlinesPerFrame];
+        _messenger = WeakReferenceMessenger.Default;
         
-        private readonly float _minDb = -15f;
-        private readonly float _maxDb = 20f;
-        private readonly float _dbRange;
+        // 创建有界通道，防止内存溢出（长度限制）, capacity=10 => 10帧缓冲(读取)
+        var rawChannelOptions = new BoundedChannelOptions(10)
+        { FullMode = BoundedChannelFullMode.Wait };
+        _rawDataChannel = Channel.CreateBounded<float[,]>(rawChannelOptions);
         
-        // Channel就像工厂的传送带，可以缓冲数据
-        private readonly Channel<float[,]> _rawDataChannel;
-        private readonly Channel<byte[,]> _processedDataChannel;
+        // 10帧缓冲(处理)
+        var processedChannelOptions = new BoundedChannelOptions(10)
+        { FullMode = BoundedChannelFullMode.Wait };
+        _processedDataChannel = Channel.CreateBounded<byte[,]>(processedChannelOptions);
+    }
+
+    /// <summary>
+    /// 启动处理管道
+    /// </summary>
+    public async Task StartProcessingAsync(string filePath)
+    {
+        _cancellationTokenSource = new CancellationTokenSource();
+        var token = _cancellationTokenSource.Token;
         
-        private CancellationTokenSource _cancellationTokenSource;
-        private readonly IMessenger _messenger;
+        // 启动三个工人同时工作
+        var readTask = ReadDataAsync(filePath, token);
+        var processTask = ProcessDataAsync(token);
+        var displayTask = DisplayDataAsync(token);
+        
+        await Task.WhenAll(readTask, processTask, displayTask);
+    }
 
-        public OctDataProcessor()
-        {
-            _dbRange = _maxDb - _minDb;
-            _messenger = WeakReferenceMessenger.Default;
-            
-            // 创建有界通道，防止内存溢出（就像传送带有长度限制）, capacity=10 => 10帧缓冲(读取)
-            var rawChannelOptions = new BoundedChannelOptions(10)
-            {
-                FullMode = BoundedChannelFullMode.Wait
-            };
-            _rawDataChannel = Channel.CreateBounded<float[,]>(rawChannelOptions);
-            
-            // 10帧缓冲(处理)
-            var processedChannelOptions = new BoundedChannelOptions(10)
-            {
-                FullMode = BoundedChannelFullMode.Wait
-            };
-            _processedDataChannel = Channel.CreateBounded<byte[,]>(processedChannelOptions);
-        }
+    /// <summary>
+    /// 停止处理
+    /// </summary>
+    public void StopProcessing()
+    {
+        _cancellationTokenSource?.Cancel();
+        // 等待所有任务完成或取消
+        _rawDataChannel.Writer.TryComplete();
+        _processedDataChannel.Writer.TryComplete();
+    }
 
-        /// <summary>
-        /// 启动处理管道
-        /// </summary>
-        public async Task StartProcessingAsync(string filePath)
+    /// <summary>
+    /// 读取工人 - 从文件读取数据块
+    /// </summary>
+    private async Task ReadDataAsync(string filePath, CancellationToken token)
+    {
+        try
         {
-            _cancellationTokenSource = new CancellationTokenSource();
-            var token = _cancellationTokenSource.Token;
-            
-            // 启动三个工人同时工作
-            var readTask = ReadDataAsync(filePath, token);
-            var processTask = ProcessDataAsync(token);
-            var displayTask = DisplayDataAsync(token);
-            
-            await Task.WhenAll(readTask, processTask, displayTask);
-        }
+            using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);  //using 可以让函数执行完自动调用.Dispose()
+            var fileLength = fileStream.Length;
+            var totalBlocks = fileLength / _blockSize;  // 检查过了, 是4096没问题
+            var currentBlock = 0;
 
-        /// <summary>
-        /// 停止处理
-        /// </summary>
-        public void StopProcessing()
-        {
-            _cancellationTokenSource?.Cancel();
-        }
-
-        /// <summary>
-        /// 读取工人 - 从文件读取数据块
-        /// </summary>
-        private async Task ReadDataAsync(string filePath, CancellationToken token)
-        {
+            // 使用ArrayPool减少内存分配（重复使用容器）
+            var buffer = ArrayPool<byte>.Shared.Rent(_blockSize);
             try
             {
-                using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-                var fileLength = fileStream.Length;
-                var totalBlocks = fileLength / BlockSize;
-                var currentBlock = 0;
-                
-                // 使用ArrayPool减少内存分配（就像重复使用容器）
-                var buffer = ArrayPool<byte>.Shared.Rent(BlockSize);
-                
-                try
+                while (!token.IsCancellationRequested)
                 {
-                    while (!token.IsCancellationRequested)
+                    var bytesRead = await fileStream.ReadAsync(buffer, 0, _blockSize, token); //第 1 块，读取了 819200 字节
+                    ConvertFloatEndian(buffer);
+                    if (bytesRead < _blockSize)
                     {
-                        var bytesRead = await fileStream.ReadAsync(buffer, 0, BlockSize, token);
-                        if (bytesRead < BlockSize)
-                            break;
-                        
-                        // 将字节转换为float数组
-                        var floatData = ConvertBytesToFloat(buffer, Width, Height);
-                        
-                        // 发送到处理通道
-                        await _rawDataChannel.Writer.WriteAsync(floatData, token);
-                        
-                        // 更新进度
-                        currentBlock++;
-                        var progress = (double)currentBlock / totalBlocks * 100;
-                        _messenger.Send(new ProcessingProgressMessage(progress));
+                        Console.WriteLine($"读取完成，最后一块只有 {bytesRead} 字节");
+                        break;
                     }
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                    _rawDataChannel.Writer.Complete();
-                }
-            }
-            catch (Exception ex)
-            {
-                _messenger.Send(new FileLoadingStatusMessage($"读取错误: {ex.Message}"));
-                _rawDataChannel.Writer.Complete();
-            }
-        }
-
-        /// <summary>
-        /// 处理工人 - 归一化和转换数据
-        /// </summary>
-        private async Task ProcessDataAsync(CancellationToken token)
-        {
-            try
-            {
-                await foreach (var rawData in _rawDataChannel.Reader.ReadAllAsync(token))
-                {
-                    var processedData = ProcessBlock(rawData);
-                    await _processedDataChannel.Writer.WriteAsync(processedData, token);
+                    // 检查数据大小:  bytesRead = expectedBytes = PixelsPerAline * AlinesPerFrame * 4 = 819200
+                    // 将字节转换为float数组
+                    var floatData = new float[AlinesPerFrame, PixelsPerAline];
+                    Buffer.BlockCopy(buffer, 0, floatData, 0, _blockSize);
+                    // 发送到处理通道
+                    await _rawDataChannel.Writer.WriteAsync(floatData, token);
+                    
+                    // 更新进度
+                    currentBlock++;
+                    var progress = (double)currentBlock / totalBlocks * 100;
+                    _messenger.Send(new ProcessingProgressMessage(progress));
                 }
             }
             finally
             {
-                _processedDataChannel.Writer.Complete();
+                ArrayPool<byte>.Shared.Return(buffer);
+                _rawDataChannel.Writer.TryComplete();
             }
         }
-
-        /// <summary>
-        /// 显示工人 - 发送数据到UI
-        /// </summary>
-        private async Task DisplayDataAsync(CancellationToken token)
+        catch (Exception ex)
         {
-            await foreach (var processedData in _processedDataChannel.Reader.ReadAllAsync(token))
+            _messenger.Send(new FileLoadingStatusMessage($"读取中断: {ex.Message}"));
+            _rawDataChannel.Writer.TryComplete();
+            
+        }
+    }
+
+    /// <summary>
+    /// 处理工人 - 归一化和转换数据
+    /// </summary>
+    private async Task ProcessDataAsync(CancellationToken token)
+    {
+        try
+        {
+            await foreach (var rawData in _rawDataChannel.Reader.ReadAllAsync(token))
             {
-                _messenger.Send(new ProcessedDataReadyMessage(processedData));
-                
-                // 控制显示速率，避免UI卡顿（就像控制传送带速度）
-                await Task.Delay(33, token); // 约30fps
+                var processedData = ProcessBlock(rawData);
+                await _processedDataChannel.Writer.WriteAsync(processedData, token);
             }
         }
-
-        /// <summary>
-        /// 将字节数组转换为float二维数组, >big-endian）
-        /// </summary>
-        private float[,] ConvertBytesToFloat(byte[] buffer, int width, int height)
+        finally
         {
-            var result = new float[height, width];
-            var index = 0;
-            
-            for (int i = 0; i < height; i++)
+            _processedDataChannel.Writer.TryComplete();
+        }
+    }
+
+    /// <summary>
+    /// 显示工人 - 发送数据到UI
+    /// </summary>
+    private async Task DisplayDataAsync(CancellationToken token)
+    {
+        await foreach (var processedData in _processedDataChannel.Reader.ReadAllAsync(token))
+        {
+            _messenger.Send(new ProcessedDataReadyMessage(processedData));
+            // 控制显示速率，避免UI卡顿（就像控制传送带速度）
+            await Task.Delay(33, token); // 约30fps
+        }
+    }
+
+
+    /// <summary>
+    /// 处理数据块 - 归一化并转换为uint8
+    /// </summary>
+    private byte[,] ProcessBlock(float[,] input)
+    {
+        var height = input.GetLength(0);  // AlinesPerFrame = 256
+        var width = input.GetLength(1);   // PixelsPerAline = 800
+        var result = new byte[height, width];
+
+        Console.WriteLine($"Process block: height={height}, width={width}");
+
+        // 🔧 优化：预计算倒数，避免除法
+        float invDbRange = 1.0f / _dbRange;
+
+        Parallel.For(0, height, i =>
+        {
+            for (int j = 0; j < width; j++)
             {
-                for (int j = 0; j < width; j++)
-                {
-                    // Big-endian转换 
-                    if (BitConverter.IsLittleEndian)
-                    {
-                        var bytes = new byte[4];
-                        bytes[0] = buffer[index + 3];
-                        bytes[1] = buffer[index + 2];
-                        bytes[2] = buffer[index + 1];
-                        bytes[3] = buffer[index];
-                        result[i, j] = BitConverter.ToSingle(bytes, 0);
-                    }
-                    else
-                    {
-                        result[i, j] = BitConverter.ToSingle(buffer, index);
-                    }
-                    index += 4;
-                }
+                var normalized = (input[i, j] - _minDb) * invDbRange;
+                var clipped = Math.Clamp(normalized, 0f, 1f);  // 🔧 使用Math.Clamp更高效
+                result[i, j] = (byte)(clipped * 255);
             }
-            
-            return result;
-        }
+        });
 
-        /// <summary>
-        /// 处理数据块 - 归一化并转换为uint8
-        /// </summary>
-        private byte[,] ProcessBlock(float[,] input)
+        return result;
+    }
+
+    private static void ConvertFloatEndian(Span<byte> buffer)
+    {
+        if (buffer.Length % 4 != 0)
+            throw new ArgumentException("Buffer长度必须是4的倍数");
+
+        var uintSpan = MemoryMarshal.Cast<byte, uint>(buffer);
+        for (int i = 0; i < uintSpan.Length; i++)
         {
-            var height = input.GetLength(0);
-            var width = input.GetLength(1);
-            var result = new byte[height, width];
-            
-            // 并行处理提高效率（多个工人同时处理不同行）
-            Parallel.For(0, height, i =>
-            {
-                for (int j = 0; j < width; j++)
-                {
-                    // 实现Python代码的逻辑
-                    var normalized = (input[i, j] - _minDb) / _dbRange;
-                    var clipped = Math.Max(0, Math.Min(1, normalized));
-                    result[i, j] = (byte)(clipped * 255);
-                }
-            });
-            
-            return result;
+            uint value = uintSpan[i];
+            uintSpan[i] = ((value & 0x000000FF) << 24) |
+                          ((value & 0x0000FF00) << 8) |
+                          ((value & 0x00FF0000) >> 8) |
+                          ((value & 0xFF000000) >> 24);
         }
+    }
+    
 }

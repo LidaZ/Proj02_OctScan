@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using OctVisionEngine.ViewModels;
 using OctVisionEngine.Views;
@@ -11,6 +12,7 @@ namespace OctVisionEngine;
 
 public partial class App : Application
 {
+    public static Window? MainWindowHandler { get; private set; }
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -23,10 +25,11 @@ public partial class App : Application
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
-            desktop.MainWindow = new VisionWindow_View()
+            MainWindowHandler = new VisionWindow_View()
             {
                 DataContext = new VisionWindow_ViewModel(),
             };
+            desktop.MainWindow = MainWindowHandler;
         }
 
         base.OnFrameworkInitializationCompleted();

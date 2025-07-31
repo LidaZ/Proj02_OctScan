@@ -1,9 +1,9 @@
 ﻿<Window
-    Height="600"
+    Height="720"
     Title="VisionWindow_View"
-    Width="900"
-    d:DesignHeight="600"
-    d:DesignWidth="900"
+    Width="1280"
+    d:DesignHeight="720"
+    d:DesignWidth="1280"
     mc:Ignorable="d"
     x:Class="OctVisionEngine.Views.VisionWindow_View"
     x:DataType="vm:VisionWindow_ViewModel"
@@ -23,17 +23,17 @@
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <Button
                     Command="{Binding SelectFileCommand}"
-                    Content="选择文件"
+                    Content="File"
                     IsEnabled="{Binding !IsProcessing}" />
 
                 <Button
                     Command="{Binding StartProcessingCommand}"
-                    Content="开始处理"
+                    Content="Proc"
                     IsEnabled="{Binding !IsProcessing}" />
 
                 <Button
                     Command="{Binding StopProcessingCommand}"
-                    Content="停止"
+                    Content="Stop"
                     IsEnabled="{Binding IsProcessing}" />
 
                 <TextBlock
@@ -70,14 +70,14 @@
                     <TextBlock
                         FontSize="16"
                         FontWeight="Bold"
-                        Text="实时信息" />
+                        Text="Video info" />
 
                     <Border Background="#DDD" Height="1" />
 
                     <StackPanel Spacing="5">
                         <TextBlock>
                             <TextBlock.Text>
-                                <MultiBinding StringFormat="帧数: {0}">
+                                <MultiBinding StringFormat="Frame count: {0}">
                                     <Binding Path="FrameCount" />
                                 </MultiBinding>
                             </TextBlock.Text>
@@ -91,9 +91,9 @@
                             </TextBlock.Text>
                         </TextBlock>
 
-                        <TextBlock Text="图像尺寸: 700×256" />
-                        <TextBlock Text="数据类型: Float32 → Uint8" />
-                        <TextBlock Text="归一化范围: [-15, 20] dB" />
+                        <TextBlock Text="Frame size: 700×256" />
+                        <TextBlock Text="Data type: Float32 → Uint8" />
+                        <TextBlock Text="Normalization: [-15, 20] dB" />
                     </StackPanel>
 
                     <Border
@@ -101,12 +101,12 @@
                         Height="1"
                         Margin="0,10" />
 
-                    <TextBlock FontWeight="Bold" Text="处理参数" />
+                    <TextBlock FontWeight="Bold" Text="Proc info" />
 
                     <StackPanel Spacing="5">
-                        <TextBlock Text="读取缓冲: 10 帧" />
-                        <TextBlock Text="处理缓冲: 10 帧" />
-                        <TextBlock Text="并行处理: 启用" />
+                        <TextBlock Text="Read buffer frame: 10" />
+                        <TextBlock Text="Proc buffer frame: 10" />
+                        <TextBlock Text="Async proc: On" />
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -138,6 +138,7 @@
                     Value="{Binding Progress}" />
             </Grid>
         </Border>
+
     </Grid>
 
 </Window>

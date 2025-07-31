@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -10,6 +11,7 @@ using OctVisionEngine.Models;
 using Avalonia.Threading;
 using System.Runtime.InteropServices;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Remote.Protocol.Viewport;
 using PixelFormat = Avalonia.Platform.PixelFormat;
 
@@ -55,7 +57,7 @@ public partial class VisionWindow_ViewModel : ObservableObject
         
         // 初始化图像（256x700的灰度图）
         CurrentImage = new WriteableBitmap(
-            new PixelSize(700, 256), 
+            new PixelSize(700, 256),
             new Vector(96, 96), 
             PixelFormats.Gray8); // PixelFormats.Gray8
         
@@ -65,21 +67,15 @@ public partial class VisionWindow_ViewModel : ObservableObject
 
     private void RegisterMessages()
     {
+        // UI更新必须在UI线程（就像只有特定工人能操作显示屏）
         _messenger.Register<ProcessedDataReadyMessage>(this, (r, m) =>
-        {
-            // UI更新必须在UI线程（就像只有特定工人能操作显示屏）
-            Dispatcher.UIThread.Post(() => UpdateImage(m.Value));
-        });
+        { Dispatcher.UIThread.Post(() => UpdateImage(m.Value)); });
         
         _messenger.Register<FileLoadingStatusMessage>(this, (r, m) =>
-        {
-            Dispatcher.UIThread.Post(() => StatusText = m.Value);
-        });
+        { Dispatcher.UIThread.Post(() => StatusText = m.Value); });
         
         _messenger.Register<ProcessingProgressMessage>(this, (r, m) =>
-        {
-            Dispatcher.UIThread.Post(() => Progress = m.Value);
-        });
+        { Dispatcher.UIThread.Post(() => Progress = m.Value); });
     }
 
     /// <summary>
@@ -88,10 +84,44 @@ public partial class VisionWindow_ViewModel : ObservableObject
     [RelayCommand]
     private async Task SelectFileAsync()
     {
-        // 这里简化处理，实际应该使用文件对话框
-        // 在实际应用中，你需要使用 Avalonia 的文件对话框
-        SelectedFilePath = "J:/Data_2025/20250326_Jurkat4/Day0_Control_Pos1(bottom)/Data.bin";
-        StatusText = "已选择文件";
+        // 先检查MainWindow是否存在
+        if (App.MainWindowHandler == null)
+        {
+            StatusText = "窗口未初始化，请稍后再试";
+            return;
+        }
+        var dialog = new OpenFileDialog
+        {
+            Title = "选择数据文件",
+            Filters = new List<FileDialogFilter>
+            {
+                new FileDialogFilter { Name = "二进制文件", Extensions = { "bin" } },
+                new FileDialogFilter { Name = "所有文件", Extensions = { "*" } }
+            }
+        };
+
+        // 这里需要获取主窗口引用
+        try
+        {
+            var result = await dialog.ShowAsync(App.MainWindowHandler); // 需要传入父窗口
+
+            if (result != null && result.Length > 0)
+            {
+                SelectedFilePath = result[0];
+                StatusText = $"已选择: {System.IO.Path.GetFileName(result[0])}";
+                IsProcessing = false;
+                // !string.IsNullOrEmpty(SelectedFilePath)} 已经是true了
+                StartProcessingCommand.NotifyCanExecuteChanged();
+            }
+            else
+            {
+                StatusText = "未选择文件";
+            }
+        }
+        catch (Exception exception)
+        {
+            StatusText = $"文件选择出错: {exception.Message}";
+        }
     }
 
     /// <summary>
@@ -105,8 +135,9 @@ public partial class VisionWindow_ViewModel : ObservableObject
             StatusText = "请先选择文件";
             return;
         }
-        
+        // Console.WriteLine($"process异步被触发");
         IsProcessing = true;
+        StopProcessingCommand.NotifyCanExecuteChanged();
         Progress = 0;
         FrameCount = 0;
         _frameCounter = 0;
@@ -149,21 +180,36 @@ public partial class VisionWindow_ViewModel : ObservableObject
     {
         var height = data.GetLength(0);
         var width = data.GetLength(1);
+        // 如果CurrentImage尺寸不对，重新创建
+        if (CurrentImage == null ||
+            CurrentImage.PixelSize.Width != width ||
+            CurrentImage.PixelSize.Height != height)
+        {
+            // 🔧 修复2：使用BGRA8888格式，与成功代码保持一致
+            CurrentImage = new WriteableBitmap(
+                new PixelSize(width, height),
+                new Vector(96, 96),
+                PixelFormat.Bgra8888,  // 改为BGRA8888
+                AlphaFormat.Opaque);
+        }
         
         using (var lockedBitmap = CurrentImage.Lock())
         {
             unsafe
             {
-                var ptr = (byte*)lockedBitmap.Address;
-                var stride = lockedBitmap.RowBytes;
-                
-                // 并行复制数据以提高性能
+                // 🔧 修复3：按照BGRA格式处理像素
+                uint* pixelPtr = (uint*)lockedBitmap.Address;
+                int stride = lockedBitmap.RowBytes / 4; // uint步长
+
                 Parallel.For(0, height, y =>
                 {
-                    var rowPtr = ptr + y * stride;
+                    uint* rowPtr = pixelPtr + y * stride;
                     for (int x = 0; x < width; x++)
                     {
-                        rowPtr[x] = data[y, x];
+                        byte gray = data[y, x];
+                        // 🔧 修复4：使用与成功代码相同的像素格式
+                        uint grayPixel = 0xFF000000u | ((uint)gray << 16) | ((uint)gray << 8) | gray;
+                        rowPtr[x] = grayPixel;
                     }
                 });
             }

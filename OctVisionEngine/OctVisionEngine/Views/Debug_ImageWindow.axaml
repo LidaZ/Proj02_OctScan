@@ -1,0 +1,52 @@
+﻿<Window
+    Height="500"
+    Title="图像数据test"
+    Width="800"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d"
+    x:Class="OctVisionEngine.Views.ImageWindow"
+    x:DataType="vm:ImageWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:OctVisionEngine.Views"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  控制面板  -->
+        <Border
+            Background="LightGray"
+            Grid.Row="0"
+            Padding="10">
+            <StackPanel Orientation="Horizontal" Spacing="15">
+                <Button
+                    Background="Red"
+                    Content="Stop"
+                    Foreground="White"
+                    Name="ExitButton"
+                    Width="80" />
+            </StackPanel>
+        </Border>
+
+        <!--  图像显示区域  -->
+        <ScrollViewer
+            Grid.Row="1"
+            HorizontalScrollBarVisibility="Auto"
+            VerticalScrollBarVisibility="Auto">
+            <Image
+                HorizontalAlignment="Center"
+                Name="DisplayImage"
+                Source="{Binding DisplayBitmap}"
+                Stretch="None"
+                VerticalAlignment="Center" />
+
+        </ScrollViewer>
+    </Grid>
+</Window>

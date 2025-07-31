@@ -8,6 +8,7 @@
         <entry key="OctVisionEngine/Views/AlbumView.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/AlbumWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/Album_View.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
+        <entry key="OctVisionEngine/Views/Debug_ImageWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/MainWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/MainWindow_View.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/MusisStoreWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
@@ -18,6 +19,7 @@
         <entry key="OctVisionEngine/Views/Store_Window_View.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/TextWindow.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/Text_Window_View.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
+        <entry key="OctVisionEngine/Views/VisionWindow_View.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
         <entry key="OctVisionEngine/Views/VisionWindow_Views.axaml" value="OctVisionEngine/OctVisionEngine.csproj" />
       </map>
     </option>
