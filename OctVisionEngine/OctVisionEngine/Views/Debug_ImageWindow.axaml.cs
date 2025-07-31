@@ -75,14 +75,12 @@ public partial class ImageWindow : Window, INotifyPropertyChanged
         try
         {
             var bytesRead = await fileStream.ReadAsync(buffer, 0, _blockSize);
-            // Console.WriteLine($"文件大小: {fileStream.Length:N0}, 目前进度: {(bytesRead / fileStream.Length) * 100 }%");
             // if (bytesRead < _blockSize)
-            // { Console.WriteLine($"读取完成，最后一块只有 {bytesRead} 字节"); }
-            ConvertFloatEndian(buffer);
+            // { Console.WriteLine($"读取完成，最后一块字节 {bytesRead} / {_blockSize}"); }
+            SwapByteEndianForFloat(buffer);
             Buffer.BlockCopy(buffer, 0, _floatData, 0, _blockSize);
             // for (int col = 0; col < 10; col++) { Console.Write($"{_floatData[50, col]} "); }
-            await ConvertFloatArrayToImage(_floatData);
-            // Console.WriteLine($"Convert到图像已经做完了");
+            await ConvertFloatArrayToGrayImage(_floatData);
         }
         catch (Exception e)
         {
@@ -92,11 +90,10 @@ public partial class ImageWindow : Window, INotifyPropertyChanged
 
     }
 
-
-    private static void ConvertFloatEndian(Span<byte> buffer)
+    private static void SwapByteEndianForFloat(Span<byte> buffer)
     {
         if (buffer.Length % 4 != 0)
-            throw new ArgumentException("Buffer长度必须是4的倍数");
+            throw new ArgumentException("Buffer length should be 4*int");
         var uintSpan = MemoryMarshal.Cast<byte, uint>(buffer);
         for (int i = 0; i < uintSpan.Length; i++)
         {
@@ -108,13 +105,12 @@ public partial class ImageWindow : Window, INotifyPropertyChanged
         }
     }
 
-    private async Task ConvertFloatArrayToImage(float[,] _floatData)
+    private async Task ConvertFloatArrayToGrayImage(float[,] _floatData)
     {
         if (_floatData == null) return;
         int width = _floatData.GetLength(0);   // 800
         int height = _floatData.GetLength(1);  // 256
 
-        // 创建灰度图"画布"
         var bitmap = new WriteableBitmap(new PixelSize(width, height), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
         await Task.Run(() =>
         {
@@ -123,21 +119,6 @@ public partial class ImageWindow : Window, INotifyPropertyChanged
             {
                 uint* pixelPtr = (uint*)lockedBitmap.Address; // 直接用uint指针，一次写4个字节
                 int stride = lockedBitmap.RowBytes / 4; // uint步长
-                // // y < height, x < width
-                // for (int y = 0; y < 10; y++)
-                // {
-                //     for (int x = 0; x < 10; x++)
-                //     {
-                //         // 归一化 + 截断
-                //         byte gray = (byte)(Math.Max(0f, Math.Min(1f, (_floatData[x, y] - _minDb) / _dbRange)) * 255f);
-                //         // 一次性写入BGRA
-                //         uint grayPixel = 0xFF000000u | ((uint)gray << 16) | ((uint)gray << 8) | gray; // BGRA (Little-endian)
-                //         // uint grayPixel = ((uint)gray << 24) | ((uint)gray << 16) | ((uint)gray << 8) | 0xFF; //Big-endian, 说不定是这个问题?试试这行代码
-                //         Console.WriteLine($"原值: {_floatData[x, y]}; 对应灰度值: {gray}");
-                //         pixelPtr[y * stride + x] = grayPixel;
-                //     }
-                // }
-                // // Parallel.For(0, height, y => { for (int x = 0; x < width; x++) })
                 Parallel.For(0, height, y =>
                 {
                     for (int x = 0; x < width; x++)
