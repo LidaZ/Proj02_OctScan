@@ -61,9 +61,10 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         catch (Exception e)
         { Console.WriteLine($"加载图像失败: {e.Message}"); }
     }
+
     // 新增一个命令，用于取消异步任务
     [RelayCommand]
-    private void Stop()
+    private void StopGrabFrame()
     { _cts?.Cancel(); }
 
 

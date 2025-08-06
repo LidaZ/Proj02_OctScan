@@ -33,7 +33,7 @@
 
                 <Button
                     Command="{Binding StopProcessingCommand}"
-                    Content="Stop"
+                    Content="StopGrabFrame"
                     IsEnabled="{Binding IsProcessing}" />
 
                 <TextBlock

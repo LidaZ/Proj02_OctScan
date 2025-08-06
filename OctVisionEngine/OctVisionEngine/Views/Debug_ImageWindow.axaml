@@ -28,8 +28,8 @@
             <StackPanel Orientation="Horizontal" Spacing="15">
                 <Button
                     Background="Red"
-                    Command="{Binding StopCommand}"
-                    Content="Stop"
+                    Command="{Binding StopGrabFrameCommand}"
+                    Content="StopGrabFrame"
                     Foreground="White"
                     Name="ExitButton"
                     Width="80" />
