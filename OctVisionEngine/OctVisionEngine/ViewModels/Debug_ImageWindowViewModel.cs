@@ -35,7 +35,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     // protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
     // { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
     [ObservableProperty]
-    private WriteableBitmap _imagePanelDebug;
+    private WriteableBitmap? _imagePanelDebug; //
 
     public Debug_ImageWindowViewModel()
     {

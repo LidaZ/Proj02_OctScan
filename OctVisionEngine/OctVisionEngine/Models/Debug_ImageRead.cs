@@ -32,7 +32,7 @@ public class Debug_ImageRead
     {
         var buffer = ArrayPool<byte>.Shared.Rent(_blockSize);
         var floatData = new float[AlinesPerFrame, PixelsPerAline];
-        using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read); // 使用 using 确保文件流被正确关闭
+        await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read); // 使用 using 确保文件流被正确关闭
         try
         {
             while (!cancellationToken.IsCancellationRequested)
