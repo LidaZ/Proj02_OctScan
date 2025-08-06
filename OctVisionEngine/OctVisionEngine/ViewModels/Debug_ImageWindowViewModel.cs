@@ -50,7 +50,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     {
         try
         {
-            await foreach (var bitmap in _imageReader.LoadFrameFromBinAsync(_filePath, _cts.Token))
+            await foreach (var bitmap in _imageReader.LoadFramesSequenceFromBinAsync(_filePath, _cts.Token))
             {
                 ImagePanelDebug = bitmap;
                 await Task.Delay(100);

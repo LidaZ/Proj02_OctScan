@@ -28,16 +28,16 @@ public class Debug_ImageRead
     }
 
 
-    public async IAsyncEnumerable<WriteableBitmap> LoadFrameFromBinAsync(string filePath, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<WriteableBitmap> LoadFramesSequenceFromBinAsync(string filePath, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var buffer = ArrayPool<byte>.Shared.Rent(_blockSize);
+        var buffer = ArrayPool<byte>.Shared.Rent(_blockSize); //只在方法开始时分配了一个大的 byte[] 数组，这个数组在堆上, 虽然读取快,但每次new一个类实例，都会涉及到堆内存分配和后续的垃圾回收（GC）开销。所以不参与循环.
         var floatData = new float[AlinesPerFrame, PixelsPerAline];
         await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read); // 使用 using 确保文件流被正确关闭
         try
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                var bytesRead = await fileStream.ReadAsync(buffer, 0, _blockSize, cancellationToken);
+                var bytesRead = await fileStream.ReadAsync(new Memory<byte>(buffer, 0, _blockSize), cancellationToken); //Memory<T> 和 Span<T> 都是结构体(struct), 分配在栈上, 每次new都只是把值复制拷贝到栈上, 没有内存分配所以没有GC开销. 故放在循环里重复读写.
                 if (bytesRead < _blockSize)
                 {
                     Console.WriteLine($"读取完成，最后一块字节 {bytesRead} / {_blockSize}");
