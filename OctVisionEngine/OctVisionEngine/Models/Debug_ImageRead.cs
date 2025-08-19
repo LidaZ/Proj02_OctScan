@@ -19,33 +19,33 @@ public class Debug_ImageRead
     private readonly float _dbRange;
     private const int AlinesPerFrame = 256;
     private const int PixelsPerAline = 800;
-    private readonly int _blockSize;
+    private readonly int _blockSizeOfBscan;
 
     public Debug_ImageRead()
     {
         _dbRange = _maxDb - _minDb;
-        _blockSize = AlinesPerFrame * PixelsPerAline * sizeof(float);
+        _blockSizeOfBscan = AlinesPerFrame * PixelsPerAline * sizeof(float);
     }
 
 
     public async IAsyncEnumerable<WriteableBitmap> LoadFramesSequenceFromBinAsync(string filePath, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var buffer = ArrayPool<byte>.Shared.Rent(_blockSize); //只在方法开始时分配了一个大的 byte[] 数组，这个数组在堆上, 虽然读取快,但每次new一个类实例，都会涉及到堆内存分配和后续的垃圾回收（GC）开销。所以不参与循环.
+        var buffer = ArrayPool<byte>.Shared.Rent(_blockSizeOfBscan); //只在方法开始时分配了一个大的 byte[] 数组，这个数组在堆上, 虽然读取快,但每次new一个类实例，都会涉及到堆内存分配和后续的垃圾回收（GC）开销。所以不参与循环.
         var floatData = new float[AlinesPerFrame, PixelsPerAline];
-        await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read); // 使用 using 确保文件流被正确关闭
+        await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read); //await using语法糖 => try...finally{DisposeAsync()} 确保文件流读完后自动关闭
         try
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                var bytesRead = await fileStream.ReadAsync(new Memory<byte>(buffer, 0, _blockSize), cancellationToken); //Memory<T> 和 Span<T> 都是结构体(struct), 分配在栈上, 每次new都只是把值复制拷贝到栈上, 没有内存分配所以没有GC开销. 故放在循环里重复读写.
-                if (bytesRead < _blockSize)
+                var bytesRead = await fileStream.ReadAsync(new Memory<byte>(buffer, 0, _blockSizeOfBscan), cancellationToken); //Memory<T> 和 Span<T> 都是结构体(struct), 分配在栈上, 每次new都只是把值复制拷贝到栈上, 没有内存分配所以没有GC开销. 故放在循环里重复读写.
+                if (bytesRead < _blockSizeOfBscan)
                 {
-                    Console.WriteLine($"读取完成，最后一块字节 {bytesRead} / {_blockSize}");
-                    break;
+                    Console.WriteLine($"读取完成，最后一块字节 {bytesRead} / {_blockSizeOfBscan}");
+                    break;  // break之后执行finally{}，然后跳出fileStream的作用域同时触发await using中自动实现的fileStram.DisposeAsync()
                 }
 
                 SwapByteEndianForFloat(buffer);
-                Buffer.BlockCopy(buffer, 0, floatData, 0, _blockSize);
+                Buffer.BlockCopy(buffer, 0, floatData, 0, _blockSizeOfBscan);
 
                 var bitmapAfterConversion = await ConvertFloatArrayToGrayImageAsync(floatData);
                 yield return bitmapAfterConversion;

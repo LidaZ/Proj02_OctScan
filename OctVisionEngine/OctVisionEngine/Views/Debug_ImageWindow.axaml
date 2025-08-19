@@ -1,9 +1,7 @@
 ﻿<Window
-    Height="500"
-    Title="图像数据test"
-    Width="800"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
+    Height="720"
+    Title="ImageGrab"
+    Width="1080"
     mc:Ignorable="d"
     x:Class="OctVisionEngine.Views.Debug_ImageWindow"
     x:DataType="vm:Debug_ImageWindowViewModel"
@@ -20,23 +18,36 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  控制面板  -->
+        <!--  Top: Tools tab dock  -->
         <Border
             Background="LightGray"
             Grid.Row="0"
             Padding="10">
             <StackPanel Orientation="Horizontal" Spacing="15">
                 <Button
+                    Command="{Binding SelectFileCommand}"
+                    Content="Open"
+                    IsEnabled="{Binding !IsProcessing}"
+                    Width="60" />
+
+                <Button
+                    Command="{Binding LoadFramesContinuouslyCommand}"
+                    Content="Load"
+                    IsEnabled="{Binding !IsProcessing}"
+                    Width="60" />
+
+                <Button
                     Background="Red"
                     Command="{Binding StopGrabFrameCommand}"
-                    Content="StopGrabFrame"
+                    Content="Stop"
                     Foreground="White"
+                    IsEnabled="{Binding IsProcessing}"
                     Name="ExitButton"
-                    Width="80" />
+                    Width="60" />
             </StackPanel>
         </Border>
 
-        <!--  图像显示区域  -->
+        <!--  Left: Images display dock  -->
         <ScrollViewer
             Grid.Row="1"
             HorizontalScrollBarVisibility="Auto"

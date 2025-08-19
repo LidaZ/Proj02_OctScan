@@ -21,8 +21,6 @@ public partial class Debug_ImageWindow : Window
     public Debug_ImageWindow()
     {
         InitializeComponent();
-
-        // 设置ViewModel作为DataContext - 这是MVVM的关键一步
         DataContext = new Debug_ImageWindowViewModel();
         SetupExitButton();
     }

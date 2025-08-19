@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia.Controls;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OctVisionEngine.Models;
@@ -15,7 +18,6 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
 {
     private readonly Debug_ImageRead _imageReader;
     private CancellationTokenSource _cts;
-    private readonly string _filePath = @"J:\Data_2025\20250326_Jurkat4\Day0_Control_Pos1(bottom)\Data.bin";
     // 以下为手动实现CommunityToolkit.Mvvm的[ObservableProperty]的功能. 包括:
     // 1) 内部用的字段_imagePanelDebug和外部调用的ImagePanelDebug相互隔离, 并使用get set方法互通;
     // 2) 针对set, 自动实现INotifyPropertyChanged(), 一但值变动及时通知View层更新.
@@ -35,25 +37,56 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     // protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
     // { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
     [ObservableProperty]
-    private WriteableBitmap? _imagePanelDebug; //
+    private WriteableBitmap? _imagePanelDebug;
+    [ObservableProperty]
+    private bool _isProcessing = false;
+    [ObservableProperty]
+    private string _selectedFilePath = string.Empty;
+
 
     public Debug_ImageWindowViewModel()
     {
         _imageReader = new Debug_ImageRead();
         _cts = new CancellationTokenSource(); // 在构造函数中初始化 CancellationTokenSource
-        _ = LoadFramesContinuouslyCommand.ExecuteAsync(null);
-
+        // _ = LoadFramesContinuouslyCommand.ExecuteAsync(null);
     }
+
+
+    [RelayCommand]
+    private async Task SelectFileAsync()
+    {
+        var storageProvider = App.MainWindowHandler?.StorageProvider;
+        if (storageProvider == null) return;
+        var options = new FilePickerOpenOptions
+        {
+            Title = "Select binary raw data",
+            FileTypeFilter = new[]
+            { new FilePickerFileType("二进制文件") { Patterns = new[] { "*.bin" } } }
+        };
+        try
+        {
+            var selectedFile = await storageProvider.OpenFilePickerAsync(options);
+            if (selectedFile.Count > 0 && selectedFile[0].TryGetLocalPath() is {} filePath)
+            { SelectedFilePath = filePath; }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
 
     [RelayCommand]
     private async Task LoadFramesContinuouslyAsync()
     {
+        IsProcessing = true;
         try
         {
-            await foreach (var bitmap in _imageReader.LoadFramesSequenceFromBinAsync(_filePath, _cts.Token))
+            await foreach (var bitmap in _imageReader.LoadFramesSequenceFromBinAsync(SelectedFilePath, _cts.Token))
             {
                 ImagePanelDebug = bitmap;
-                await Task.Delay(100);
+                // await Task.Delay(100);
             }
         }
         catch (OperationCanceledException)
@@ -62,10 +95,13 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         { Console.WriteLine($"加载图像失败: {e.Message}"); }
     }
 
-    // 新增一个命令，用于取消异步任务
+
     [RelayCommand]
     private void StopGrabFrame()
-    { _cts?.Cancel(); }
+    {
+        _cts?.Cancel();
+        IsProcessing = false;
+    }
 
 
 }
