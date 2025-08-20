@@ -61,7 +61,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         {
             Title = "Select binary raw data",
             FileTypeFilter = new[]
-            { new FilePickerFileType("二进制文件") { Patterns = new[] { "*.bin" } } }
+            { new FilePickerFileType("Binary raw data") { Patterns = new[] { "*.bin" } } }
         };
         try
         {

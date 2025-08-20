@@ -52,13 +52,13 @@ public class Debug_ImageRead
                 // return floatData;
             }
         }
+        // async/await：这是最基础的语法糖，它解决了如何等待异步操作完成的问题。它的核心作用是管理单个异步任务的执行流程，并等待其结果。
+        // System.Threading.Channels: 这是解决并发任务间数据传递的工具。它提供了一个线程安全、带有缓冲区的队列。生产者将数据放入通道，消费者从通道中取出数据，它们之间可以独立运行，速度不匹配时通道可以缓冲数据。
+        // IAsyncEnumerable<T>：这是位于最高层的抽象，它解决了异步数据流的问题。它将 async/await 和 Channel 的功能结合起来，使得你可以使用熟悉的 await foreach 循环来处理一个接一个的异步数据项。
+        // 它在底层就是基于 Channel 模式实现的，但它把所有复杂的生产者-消费者逻辑、线程安全和数据缓冲都封装了起来.
+        // 所以并不需要直接使用 Channel，因为 IAsyncEnumerable 已经为你封装好了它的大部分功能，提供了更简洁、更高级的接口来处理这种异步数据流.
         // 在 IAsyncEnumerable 方法内部，你应该专注于用 try...finally 来处理资源清理。
         // 至于所有可能抛出的异常，应该让它们传播到调用端，由调用端的 try...catch 来统一处理.
-        // catch (Exception e)
-        // {
-        //     Console.WriteLine($"读取文件时出错: {e.Message}");
-        //     throw;
-        // }
         finally
         { ArrayPool<byte>.Shared.Return(buffer); }
     }
