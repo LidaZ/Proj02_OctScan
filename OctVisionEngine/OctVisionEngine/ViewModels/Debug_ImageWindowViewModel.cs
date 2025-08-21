@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using CommunityToolkit.Mvvm.Messaging;
+using OctVisionEngine.Messages;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -18,6 +18,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
 {
     private readonly Debug_ImageRead _imageReader;
     private CancellationTokenSource _cts;
+    // private readonly SemaphoreSlim _pauseSemaphore = new(1, 1);
     // 以下为手动实现CommunityToolkit.Mvvm的[ObservableProperty]的功能. 包括:
     // 1) 内部用的字段_imagePanelDebug和外部调用的ImagePanelDebug相互隔离, 并使用get set方法互通;
     // 2) 针对set, 自动实现INotifyPropertyChanged(), 一但值变动及时通知View层更新.
@@ -36,12 +37,11 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     // }
     // protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
     // { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
-    [ObservableProperty]
-    private WriteableBitmap? _imagePanelDebug;
-    [ObservableProperty]
-    private bool _isProcessing = false;
-    [ObservableProperty]
-    private string _selectedFilePath = string.Empty;
+    [ObservableProperty] private bool _isFileSelected = false;
+    [ObservableProperty] private string _selectedFilePath = string.Empty;
+    [ObservableProperty] private WriteableBitmap? _imagePanelDebug;
+    [ObservableProperty] private bool _isProcessing = false;
+    [ObservableProperty] private bool _isPaused = false;
 
 
     public Debug_ImageWindowViewModel()
@@ -49,6 +49,8 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         _imageReader = new Debug_ImageRead();
         _cts = new CancellationTokenSource(); // 在构造函数中初始化 CancellationTokenSource
         // _ = LoadFramesContinuouslyCommand.ExecuteAsync(null);
+        WeakReferenceMessenger.Default.Register<StopGrabFrameMessage>
+            (this, (recipient, message) => HandleStopGrabFrame(message));
     }
 
 
@@ -66,12 +68,16 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         try
         {
             var selectedFile = await storageProvider.OpenFilePickerAsync(options);
-            if (selectedFile.Count > 0 && selectedFile[0].TryGetLocalPath() is {} filePath)
-            { SelectedFilePath = filePath; }
+            if (selectedFile.Count > 0 && selectedFile[0].TryGetLocalPath() is { } filePath)
+            {
+                SelectedFilePath = filePath;
+                IsFileSelected = true;
+            }
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
+            IsFileSelected = false;
             throw;
         }
     }
@@ -85,6 +91,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         {
             await foreach (var bitmap in _imageReader.LoadFramesSequenceFromBinAsync(SelectedFilePath, _cts.Token))
             {
+                while (_isPaused) { await Task.Delay(300, _cts.Token);}
                 ImagePanelDebug = bitmap;
                 // await Task.Delay(100);
             }
@@ -93,15 +100,30 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         { Console.WriteLine("加载操作已取消。"); }
         catch (Exception e)
         { Console.WriteLine($"加载图像失败: {e.Message}"); }
+        finally
+        { IsProcessing = false; }
     }
 
+    [RelayCommand]
+    private void PauseResume()
+    { IsPaused = !IsPaused; }
+
+    private void HandleStopGrabFrame(StopGrabFrameMessage message)
+    {
+        if (_cts != null && !_cts.IsCancellationRequested)
+        {
+            _cts.Cancel();
+            _cts.Dispose();
+        }
+        _cts = new CancellationTokenSource();
+        IsProcessing = false;
+        IsPaused = false;
+        // if (_pauseSemaphore.CurrentCount == 0) { _pauseSemaphore.Release(); }
+    }
 
     [RelayCommand]
     private void StopGrabFrame()
-    {
-        _cts?.Cancel();
-        IsProcessing = false;
-    }
+    { WeakReferenceMessenger.Default.Send(new StopGrabFrameMessage()); }
 
 
 }

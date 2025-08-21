@@ -9,22 +9,27 @@ using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace OctVisionEngine.Models;
 
-public class Debug_ImageRead
+public partial class Debug_ImageRead : ObservableObject
 {
-    private readonly float _minDb = -25f;
-    private readonly float _maxDb = 25f;
+    // private readonly float _minDb = -25f;
+    // private readonly float _maxDb = 25f;
+    // private const int AlinesPerFrame = 256;
+    // private const int PixelsPerAline = 800;
     private readonly float _dbRange;
-    private const int AlinesPerFrame = 256;
-    private const int PixelsPerAline = 800;
     private readonly int _blockSizeOfBscan;
+    [ObservableProperty] private float _minDb = -25f;
+    [ObservableProperty] private float _maxDb = 25f;
+    [ObservableProperty] private int _alinesPerFrame = 256;
+    [ObservableProperty] private int _pixelsPerAline = 800;
 
     public Debug_ImageRead()
     {
         _dbRange = _maxDb - _minDb;
-        _blockSizeOfBscan = AlinesPerFrame * PixelsPerAline * sizeof(float);
+        _blockSizeOfBscan = _alinesPerFrame * _pixelsPerAline * sizeof(float);
     }
 
 
