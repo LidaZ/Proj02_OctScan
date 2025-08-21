@@ -42,7 +42,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     [ObservableProperty] private WriteableBitmap? _imagePanelDebug;
     [ObservableProperty] private bool _isProcessing = false;
     [ObservableProperty] private bool _isPaused = false;
-
+    [ObservableProperty] private int _rasterNum = 1;
 
     public Debug_ImageWindowViewModel()
     {

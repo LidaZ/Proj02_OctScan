@@ -25,11 +25,12 @@ public partial class Debug_ImageRead : ObservableObject
     [ObservableProperty] private float _maxDb = 25f;
     [ObservableProperty] private int _alinesPerFrame = 256;
     [ObservableProperty] private int _pixelsPerAline = 800;
+    [ObservableProperty] private int _rasterNumber = 1;
 
     public Debug_ImageRead()
     {
         _dbRange = _maxDb - _minDb;
-        _blockSizeOfBscan = _alinesPerFrame * _pixelsPerAline * sizeof(float);
+        _blockSizeOfBscan = AlinesPerFrame * PixelsPerAline * sizeof(float);
     }
 
 
