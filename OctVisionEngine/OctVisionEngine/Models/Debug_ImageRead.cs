@@ -21,7 +21,7 @@ public partial class Debug_ImageRead : ObservableObject
     // private const int AlinesPerFrame = 256;
     // private const int PixelsPerAline = 800;
     private readonly float _dbRange;
-    // private readonly int _blockSizeOfBscan;
+    private int _blockSizeRead;
     [ObservableProperty] private float _minDb = -25f;
     [ObservableProperty] private float _maxDb = 25f;
     [ObservableProperty] private int _alinesPerFrame = 256;
@@ -31,20 +31,13 @@ public partial class Debug_ImageRead : ObservableObject
     public Debug_ImageRead()
     {
         _dbRange = _maxDb - _minDb;
-        // _blockSizeOfBscan = AlinesPerFrame * PixelsPerAline * sizeof(float);
-        // UpdateBlockSize();
+        // _blockSizeRead = RasterNumber * AlinesPerFrame * PixelsPerAline * sizeof(float);
     }
-
-    // partial void OnRasterNumberChanged(int value)
-    // { UpdateBlockSize(); }
-    //
-    // private void UpdateBlockSize()
-    // { _blockSizeOfBscan = RasterNumber * AlinesPerFrame * PixelsPerAline * sizeof(float); }
 
     public async IAsyncEnumerable<WriteableBitmap> LoadFramesSequenceFromBinAsync(string filePath, int rasterNumber, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        int currentBlockSize = rasterNumber * AlinesPerFrame * PixelsPerAline * sizeof(float);
-        var buffer = ArrayPool<byte>.Shared.Rent(currentBlockSize);
+        _blockSizeRead = rasterNumber * AlinesPerFrame * PixelsPerAline * sizeof(float);
+        var buffer = ArrayPool<byte>.Shared.Rent(_blockSizeRead);
         // 预分配重用的数组，避免每次循环都创建新对象
         float[,]? floatData2D = rasterNumber == 1 ? new float[AlinesPerFrame, PixelsPerAline] : null;
         float[,,]? floatData3D = rasterNumber > 1 ? new float[rasterNumber, AlinesPerFrame, PixelsPerAline] : null;
@@ -53,24 +46,24 @@ public partial class Debug_ImageRead : ObservableObject
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                var bytesRead = await fileStream.ReadAsync(new Memory<byte>(buffer, 0, currentBlockSize), cancellationToken);
-                if (bytesRead < currentBlockSize)
+                var bytesRead = await fileStream.ReadAsync(new Memory<byte>(buffer, 0, _blockSizeRead), cancellationToken);
+                if (bytesRead < _blockSizeRead)
                 {
-                    Console.WriteLine($"读取完成，最后一块字节 {bytesRead} / {currentBlockSize}");
+                    Console.WriteLine($"读取完成，最后一块字节 {bytesRead} / {_blockSizeRead}");
                     break;
                 }
-                SwapByteEndianForFloat(buffer.AsSpan(0, currentBlockSize));
+                SwapByteEndianForFloat(buffer.AsSpan(0, _blockSizeRead));
                 WriteableBitmap bitmapAfterConversion;
                 if (rasterNumber == 1)
                 {
                     // var floatData2D = new float[AlinesPerFrame, PixelsPerAline];
-                    Buffer.BlockCopy(buffer, 0, floatData2D, 0, currentBlockSize);
+                    Buffer.BlockCopy(buffer, 0, floatData2D, 0, _blockSizeRead);
                     bitmapAfterConversion = await ConvertFloatArrayToGrayImageAsync(floatData2D);
                 }
                 else
                 {
                     // var floatData3D = new float[rasterNumber, AlinesPerFrame, PixelsPerAline];
-                    Buffer.BlockCopy(buffer, 0, floatData3D, 0, currentBlockSize);
+                    Buffer.BlockCopy(buffer, 0, floatData3D, 0, _blockSizeRead);
                     bitmapAfterConversion = await ConvertFloat3DArrayToColorImageAsync(floatData3D);
                 }
                 yield return bitmapAfterConversion;
