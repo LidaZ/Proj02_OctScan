@@ -89,7 +89,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         IsProcessing = true;
         try
         {
-            await foreach (var bitmap in _imageReader.LoadFramesSequenceFromBinAsync(SelectedFilePath, _cts.Token))
+            await foreach (var bitmap in _imageReader.LoadFramesSequenceFromBinAsync(SelectedFilePath, RasterNum, _cts.Token))
             {
                 while (_isPaused) { await Task.Delay(300, _cts.Token);}
                 ImagePanelDebug = bitmap;
