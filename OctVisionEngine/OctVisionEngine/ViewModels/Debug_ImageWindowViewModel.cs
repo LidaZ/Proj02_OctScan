@@ -43,11 +43,12 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     [ObservableProperty] private bool _isProcessing = false;
     [ObservableProperty] private bool _isPaused = false;
     [ObservableProperty] private int _rasterNum = 1;
+    [ObservableProperty] private int _sampNum = 256;
 
     public Debug_ImageWindowViewModel()
     {
         _imageReader = new Debug_ImageRead();
-        _cts = new CancellationTokenSource(); // 在构造函数中初始化 CancellationTokenSource
+        _cts = new CancellationTokenSource();
         // _ = LoadFramesContinuouslyCommand.ExecuteAsync(null);
         WeakReferenceMessenger.Default.Register<StopGrabFrameMessage>
             (this, (recipient, message) => HandleStopGrabFrame(message));

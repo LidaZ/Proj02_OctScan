@@ -103,11 +103,14 @@
 
                 <StackPanel Margin="10">
                     <TextBlock FontSize="16" Text="Sampling points" />
-                    <Slider
-                        DockPanel.Dock="Right"
-                        Height="30"
+                    <NumericUpDown
+                        FontSize="16"
+                        Increment="1"
+                        IsEnabled="{Binding !IsProcessing}"
+                        Maximum="2048"
+                        Minimum="1"
                         Value="256"
-                        Width="120" />
+                        Width="150" />
                 </StackPanel>
 
                 <StackPanel Margin="10">
