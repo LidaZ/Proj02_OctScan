@@ -69,13 +69,6 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
                 //     // bitmapAfterConversion = await ConvertFloat3DArrayToColorImageAsync(floatData3D);
                 // }
                 // yield return bitmapAfterConversion;
-
-                // // 添加调试信息，监控GC情况
-                // if (GC.GetTotalMemory(false) > 100_000_000) // 如果内存使用超过100MB
-                // {
-                //     Console.WriteLine($"内存使用: {GC.GetTotalMemory(false) / 1024 / 1024}MB, 建议GC");
-                //     GC.Collect(0, GCCollectionMode.Optimized); // 轻量级GC
-                // }
             }
         }
         finally

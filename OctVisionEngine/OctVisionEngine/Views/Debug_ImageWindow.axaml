@@ -79,6 +79,7 @@
             <Image
                 DockPanel.Dock="Left"
                 Name="DisplayEnfaceImage"
+                Source="{Binding EnfaceImage}"
                 Stretch="None"
                 VerticalAlignment="Top" />
         </DockPanel>

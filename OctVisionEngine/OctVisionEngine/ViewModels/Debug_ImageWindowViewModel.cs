@@ -20,6 +20,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
 {
     private readonly Debug_LoadFramesFromBin _imageReader;
     private CancellationTokenSource _cts;
+    private readonly Queue<float[]> _enfaceBuffer = new Queue<float[]>();
     // private readonly SemaphoreSlim _pauseSemaphore = new(1, 1);
     // 以下为手动实现CommunityToolkit.Mvvm的[ObservableProperty]的功能. 包括:
     // 1) 内部用的字段_imagePanelDebug和外部调用的ImagePanelDebug相互隔离, 并使用get set方法互通;
@@ -52,6 +53,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     {
         _imageReader = new Debug_LoadFramesFromBin();
         _cts = new CancellationTokenSource();
+        var MAX_ENFACE_FRAMES = SampNum;
         // _ = LoadFramesContinuouslyCommand.ExecuteAsync(null);
         WeakReferenceMessenger.Default.Register<StopGrabFrameMessage>
             (this, (recipient, message) => HandleStopGrabFrame(message));
@@ -94,12 +96,17 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         IsProcessing = true;
         try
         {
-            // 创建容量为5的有界Channel，避免消耗过多内存
-            var channel = Channel.CreateBounded<float[,,]>(new BoundedChannelOptions(5)
-            { FullMode = BoundedChannelFullMode.DropOldest });
-            var displayTask = UpdateBscanWithLoadedFramesAsync(channel.Reader); // 启动消费者任务
-            await LoadFramesAsync(channel.Writer); // 生产者：读取图像
-            await displayTask;// 等待显示任务完成
+            var mainChannel = Channel.CreateBounded<float[,,]>(new BoundedChannelOptions(5)
+                { FullMode = BoundedChannelFullMode.DropOldest }); // 创建容量为5的有界Channel，避免消耗过多内存
+            var secondChannel = Channel.CreateBounded<float[,,]>(new BoundedChannelOptions(5)
+                { FullMode = BoundedChannelFullMode.DropOldest });
+            var distributeTask = DistributeDataAsync(mainChannel.Reader, secondChannel.Writer);
+
+            var bscanDisplayTask = UpdateBscanWithLoadedFramesAsync(mainChannel.Reader);
+            var enfaceDisplayTask = UpdateEnfaceWithLoadedFramesAsync(secondChannel.Reader);
+
+            var loadTask = LoadFramesAsync(mainChannel.Writer);
+            await Task.WhenAll(loadTask, distributeTask, bscanDisplayTask, enfaceDisplayTask);
         }
         catch (OperationCanceledException)
         { Console.WriteLine("加载操作已取消。"); }
@@ -108,6 +115,19 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         finally
         { IsProcessing = false; }
     }
+
+    private async Task DistributeDataAsync(ChannelReader<float[,,]> reader, ChannelWriter<float[,,]> writer)
+    {
+        try
+        {
+            await foreach (var data in reader.ReadAllAsync(_cts.Token))
+            { await writer.WriteAsync(data, _cts.Token); }
+        }
+        finally
+        { writer.Complete(); }
+    }
+
+
 
     private async Task LoadFramesAsync(ChannelWriter<float[,,]> writer)
     {
@@ -133,27 +153,48 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
                 if (RasterNum == 1)
                 {
                     var floatData2D = floatData.To2DArray();
-                    var bitmap = await _imageReader.ConvertFloatArrayToGrayImageAsync(floatData2D);
-                    BscanLoaded = bitmap;
+                    BscanLoaded = await _imageReader.ConvertFloatArrayToGrayImageAsync(floatData2D);
                 }
-                else
+                // else
+                // {
+                //     var bitmap = await _imageReader.ConvertFloat3DArrayToColorImageAsync(floatData);
+                //     BscanLoaded = bitmap;
+                // }
+            }
+        }
+        catch (ChannelClosedException) { } // 通道关闭，正常退出
+    }
+
+    private async Task UpdateEnfaceWithLoadedFramesAsync(ChannelReader<float[,,]> reader)
+    {
+        try
+        {
+            await foreach (var floatData in reader.ReadAllAsync(_cts.Token))
+            {
+                if (RasterNum == 1)
                 {
-                    var bitmap = await _imageReader.ConvertFloat3DArrayToColorImageAsync(floatData);
-                    BscanLoaded = bitmap;
+                    var floatData2D = floatData.To2DArray();
+                    var projectionData = BscanProjection.MaxProjectionSpan(floatData2D, 1);
+                    // 将投影数据添加到缓冲区
+                    _enfaceBuffer.Enqueue(projectionData);
+                    if (_enfaceBuffer.Count > SampNum)
+                    { _enfaceBuffer.Dequeue(); }
+                    // 将一维投影数据转换为2D数组以便显示
+                    var enfaceData = new float[_enfaceBuffer.Count, projectionData.Length];
+                    int row = 0;
+                    foreach (var projection in _enfaceBuffer)
+                    {
+                        for (int col = 0; col < projection.Length; col++)
+                        { enfaceData[row, col] = projection[col]; }
+                        row++;
+                    }
+
+                    EnfaceImage = await _imageReader.ConvertFloatArrayToGrayImageAsync(enfaceData);
                 }
             }
         }
-        catch (ChannelClosedException)
-        { } // 通道关闭，正常退出
+        catch (ChannelClosedException) { }
     }
-
-    // private async Task UpdateEnfaceWithLoadedFramesAsync(ChannelReader<WriteableBitmap> reader)
-    // {
-    //     try
-    //     {
-    //
-    //     }
-    // }
 
     [RelayCommand]
     private void PauseResume()
