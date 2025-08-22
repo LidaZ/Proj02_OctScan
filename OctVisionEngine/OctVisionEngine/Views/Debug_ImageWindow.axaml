@@ -78,7 +78,6 @@
             <Image
                 DockPanel.Dock="Left"
                 Name="DisplayEnfaceImage"
-                Source="{Binding DisplayEnfaceImage}"
                 Stretch="None"
                 VerticalAlignment="Top" />
         </DockPanel>
@@ -125,12 +124,6 @@
                         Value="{Binding RasterNum}"
                         Width="120" />
                 </StackPanel>
-
-                <StackPanel Margin="10">
-                    <TextBlock FontSize="14" Text="{Binding TotalAlineNum, StringFormat='Total A-lines: {0}'}" />
-                    <TextBlock FontSize="14" Text="{Binding FrameCount, StringFormat='Frames processed: {0}'}" />
-                </StackPanel>
-
             </StackPanel>
         </DockPanel>
 

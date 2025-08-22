@@ -18,7 +18,6 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
 {
     private readonly Debug_ImageRead _imageReader;
     private CancellationTokenSource _cts;
-    private readonly FrameProjection _frameProjection;
     // private readonly SemaphoreSlim _pauseSemaphore = new(1, 1);
     // 以下为手动实现CommunityToolkit.Mvvm的[ObservableProperty]的功能. 包括:
     // 1) 内部用的字段_imagePanelDebug和外部调用的ImagePanelDebug相互隔离, 并使用get set方法互通;
@@ -41,33 +40,19 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     [ObservableProperty] private bool _isFileSelected = false;
     [ObservableProperty] private string _selectedFilePath = string.Empty;
     [ObservableProperty] private WriteableBitmap? _imagePanelDebug;
-    [ObservableProperty] private WriteableBitmap? _displayEnfaceImage;
     [ObservableProperty] private bool _isProcessing = false;
     [ObservableProperty] private bool _isPaused = false;
     [ObservableProperty] private int _rasterNum = 1;
     [ObservableProperty] private int _sampNum = 256;
-    [ObservableProperty] private int _frameCount;
-    [ObservableProperty] private int _totalAlineNum;
 
     public Debug_ImageWindowViewModel()
     {
         _imageReader = new Debug_ImageRead();
         _cts = new CancellationTokenSource();
-        _frameProjection = new FrameProjection();
-        FrameCount = 0;
-        UpdateTotalAlineNum();
         // _ = LoadFramesContinuouslyCommand.ExecuteAsync(null);
         WeakReferenceMessenger.Default.Register<StopGrabFrameMessage>
             (this, (recipient, message) => HandleStopGrabFrame(message));
     }
-    partial void OnRasterNumChanged(int value)
-    { UpdateTotalAlineNum(); }
-
-    partial void OnSampNumChanged(int value)
-    { UpdateTotalAlineNum(); }
-
-    private void UpdateTotalAlineNum()
-    { TotalAlineNum = RasterNum * SampNum * SampNum; }
 
 
     [RelayCommand]
@@ -103,26 +88,13 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     private async Task LoadFramesContinuouslyAsync()
     {
         IsProcessing = true;
-        FrameCount = 0;
-        _frameProjection.Reset();        // 重置投影数据
-        _frameProjection.Initialize(TotalAlineNum, SampNum);
         try
         {
             await foreach (var bitmap in _imageReader.LoadFramesSequenceFromBinAsync(SelectedFilePath, RasterNum, _cts.Token))
             {
                 while (_isPaused) { await Task.Delay(300, _cts.Token);}
                 ImagePanelDebug = bitmap;
-                // // await Task.Delay(100);
-                var enfaceImage = await _frameProjection.UpdateEnfaceProjection(
-                    bitmap,
-                    TotalAlineNum,
-                    FrameCount,
-                    _imageReader.MinDb,  // 使用ImageReader中的dB范围
-                    _imageReader.MaxDb
-                );
-                if (enfaceImage != null)
-                { DisplayEnfaceImage = enfaceImage; }
-                FrameCount++;
+                // await Task.Delay(100);
             }
         }
         catch (OperationCanceledException)
@@ -148,10 +120,6 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         IsProcessing = false;
         IsPaused = false;
         // if (_pauseSemaphore.CurrentCount == 0) { _pauseSemaphore.Release(); }
-        FrameCount = 0;
-        // 重置投影数据
-        _frameProjection.Reset();
-        DisplayEnfaceImage = null;
     }
 
     [RelayCommand]
