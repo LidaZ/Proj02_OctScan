@@ -18,7 +18,7 @@ namespace OctVisionEngine.ViewModels;
 
 public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPropertyChanged
 {
-    private readonly Debug_ImageRead _imageReader;
+    private readonly Debug_LoadFramesFromBin _imageReader;
     private CancellationTokenSource _cts;
     // private readonly SemaphoreSlim _pauseSemaphore = new(1, 1);
     // 以下为手动实现CommunityToolkit.Mvvm的[ObservableProperty]的功能. 包括:
@@ -49,7 +49,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
 
     public Debug_ImageWindowViewModel()
     {
-        _imageReader = new Debug_ImageRead();
+        _imageReader = new Debug_LoadFramesFromBin();
         _cts = new CancellationTokenSource();
         // _ = LoadFramesContinuouslyCommand.ExecuteAsync(null);
         WeakReferenceMessenger.Default.Register<StopGrabFrameMessage>

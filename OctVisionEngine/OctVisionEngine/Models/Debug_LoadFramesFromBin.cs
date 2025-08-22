@@ -14,7 +14,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace OctVisionEngine.Models;
 
-public partial class Debug_ImageRead : ObservableObject
+public partial class Debug_LoadFramesFromBin : ObservableObject
 {
     // private readonly float _minDb = -25f;
     // private readonly float _maxDb = 25f;
@@ -28,7 +28,7 @@ public partial class Debug_ImageRead : ObservableObject
     [ObservableProperty] private int _pixelsPerAline = 800;
     [ObservableProperty] private int _rasterNumber = 1;
 
-    public Debug_ImageRead()
+    public Debug_LoadFramesFromBin()
     {
         _dbRange = _maxDb - _minDb;
         // _blockSizeRead = RasterNumber * AlinesPerFrame * PixelsPerAline * sizeof(float);
