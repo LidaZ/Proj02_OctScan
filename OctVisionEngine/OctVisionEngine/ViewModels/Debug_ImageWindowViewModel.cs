@@ -11,6 +11,8 @@ using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OctVisionEngine.Models;
+using System.Threading.Channels;
+
 
 namespace OctVisionEngine.ViewModels;
 
@@ -84,18 +86,22 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     }
 
 
+    
     [RelayCommand]
-    private async Task LoadFramesContinuouslyAsync()
+    private async Task LoadFramesAndDisplayUpdateAsync()
     {
         IsProcessing = true;
         try
         {
-            await foreach (var bitmap in _imageReader.LoadFramesSequenceFromBinAsync(SelectedFilePath, RasterNum, _cts.Token))
-            {
-                while (_isPaused) { await Task.Delay(300, _cts.Token);}
-                ImagePanelDebug = bitmap;
-                // await Task.Delay(100);
-            }
+            // 创建容量为5的有界Channel，避免消耗过多内存
+            var channel = Channel.CreateBounded<WriteableBitmap>(new BoundedChannelOptions(5)
+            { FullMode = BoundedChannelFullMode.DropOldest });
+            // 启动消费者任务
+            var displayTask = DisplayFramesAsync(channel.Reader);
+            // 生产者：读取图像
+            await ProduceFramesAsync(channel.Writer);
+            // 等待显示任务完成
+            await displayTask;
         }
         catch (OperationCanceledException)
         { Console.WriteLine("加载操作已取消。"); }
@@ -104,6 +110,41 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         finally
         { IsProcessing = false; }
     }
+
+    private async Task ProduceFramesAsync(ChannelWriter<WriteableBitmap> writer)
+    {
+        try
+        {
+            await foreach (var bitmap in _imageReader.LoadFramesSequenceFromBinAsync(SelectedFilePath, RasterNum,
+                               _cts.Token))
+            {
+                while (IsPaused)
+                { await Task.Delay(300, _cts.Token); }
+                await writer.WriteAsync(bitmap, _cts.Token);
+            }
+        }
+        finally
+        { writer.Complete(); }
+    }
+
+    private async Task DisplayFramesAsync(ChannelReader<WriteableBitmap> reader)
+    {
+        try
+        {
+            await foreach (var bitmap in reader.ReadAllAsync(_cts.Token))
+            {
+                // while (_isPaused)
+                // { await Task.Delay(300, _cts.Token); }
+                ImagePanelDebug = bitmap;
+            }
+        }
+        catch (ChannelClosedException)
+        {
+            // 通道关闭，正常退出
+        }
+    }
+
+
 
     [RelayCommand]
     private void PauseResume()
