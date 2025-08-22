@@ -34,13 +34,14 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
         // _blockSizeRead = RasterNumber * AlinesPerFrame * PixelsPerAline * sizeof(float);
     }
 
-    public async IAsyncEnumerable<WriteableBitmap> LoadFramesSequenceFromBinAsync(string filePath, int rasterNumber, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<float[,,]> LoadFramesSequenceFromBinAsync(string filePath, int rasterNumber, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         _blockSizeRead = rasterNumber * AlinesPerFrame * PixelsPerAline * sizeof(float);
         var buffer = ArrayPool<byte>.Shared.Rent(_blockSizeRead);
         // 预分配重用的数组，避免每次循环都创建新对象
-        float[,]? floatData2D = rasterNumber == 1 ? new float[AlinesPerFrame, PixelsPerAline] : null;
-        float[,,]? floatData3D = rasterNumber > 1 ? new float[rasterNumber, AlinesPerFrame, PixelsPerAline] : null;
+        // float[,,]? floatData2D = rasterNumber == 1 ? new float[rasterNumber, AlinesPerFrame, PixelsPerAline] : null;
+        // float[,,]? floatData3D = new float[rasterNumber, AlinesPerFrame, PixelsPerAline] : null;
+        float[,,] floatData3D = rasterNumber == 1 ? new float[1, AlinesPerFrame, PixelsPerAline] : new float[rasterNumber, AlinesPerFrame, PixelsPerAline];
         await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read); //await using语法糖 => try...finally{DisposeAsync()} 确保文件流读完后自动关闭
         try
         {
@@ -53,20 +54,21 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
                     break;
                 }
                 SwapByteEndianForFloat(buffer.AsSpan(0, _blockSizeRead));
-                WriteableBitmap bitmapAfterConversion;
+                // WriteableBitmap bitmapAfterConversion;
                 if (rasterNumber == 1)
                 {
                     // var floatData2D = new float[AlinesPerFrame, PixelsPerAline];
-                    Buffer.BlockCopy(buffer, 0, floatData2D, 0, _blockSizeRead);
-                    bitmapAfterConversion = await ConvertFloatArrayToGrayImageAsync(floatData2D);
-                }
-                else
-                {
-                    // var floatData3D = new float[rasterNumber, AlinesPerFrame, PixelsPerAline];
                     Buffer.BlockCopy(buffer, 0, floatData3D, 0, _blockSizeRead);
-                    bitmapAfterConversion = await ConvertFloat3DArrayToColorImageAsync(floatData3D);
+                    // bitmapAfterConversion = await ConvertFloatArrayToGrayImageAsync(floatData2D);
+                    yield return floatData3D;
                 }
-                yield return bitmapAfterConversion;
+                // else
+                // {
+                //     // var floatData3D = new float[rasterNumber, AlinesPerFrame, PixelsPerAline];
+                //     Buffer.BlockCopy(buffer, 0, floatData3D, 0, _blockSizeRead);
+                //     // bitmapAfterConversion = await ConvertFloat3DArrayToColorImageAsync(floatData3D);
+                // }
+                // yield return bitmapAfterConversion;
 
                 // // 添加调试信息，监控GC情况
                 // if (GC.GetTotalMemory(false) > 100_000_000) // 如果内存使用超过100MB
@@ -224,5 +226,33 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
     }
 
 
+}
 
+
+public static class FloatArrayExtensions
+{
+    /// <summary>
+    /// 将3D数组的第一层转换为2D数组
+    /// </summary>
+    /// <param name="source">源3D数组</param>
+    /// <returns>提取的2D数组</returns>
+    public static float[,] To2DArray(this float[,,] source)
+    {
+        if (source == null)
+            throw new ArgumentNullException(nameof(source));
+
+        int width = source.GetLength(1);
+        int height = source.GetLength(2);
+        var result = new float[width, height];
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                result[x, y] = source[0, x, y];
+            }
+        }
+
+        return result;
+    }
 }

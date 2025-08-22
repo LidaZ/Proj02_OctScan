@@ -95,7 +95,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         try
         {
             // 创建容量为5的有界Channel，避免消耗过多内存
-            var channel = Channel.CreateBounded<WriteableBitmap>(new BoundedChannelOptions(5)
+            var channel = Channel.CreateBounded<float[,,]>(new BoundedChannelOptions(5)
             { FullMode = BoundedChannelFullMode.DropOldest });
             var displayTask = UpdateBscanWithLoadedFramesAsync(channel.Reader); // 启动消费者任务
             await LoadFramesAsync(channel.Writer); // 生产者：读取图像
@@ -109,27 +109,39 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         { IsProcessing = false; }
     }
 
-    private async Task LoadFramesAsync(ChannelWriter<WriteableBitmap> writer)
+    private async Task LoadFramesAsync(ChannelWriter<float[,,]> writer)
     {
         try
         {
-            await foreach (var bitmap in _imageReader.LoadFramesSequenceFromBinAsync(SelectedFilePath, RasterNum, _cts.Token))
+            await foreach (var floatData3D in _imageReader.LoadFramesSequenceFromBinAsync(SelectedFilePath, RasterNum, _cts.Token))
             {
                 while (IsPaused)
                 { await Task.Delay(300, _cts.Token); }
-                await writer.WriteAsync(bitmap, _cts.Token);
+                await writer.WriteAsync(floatData3D, _cts.Token);
             }
         }
         finally
         { writer.Complete(); }
     }
 
-    private async Task UpdateBscanWithLoadedFramesAsync(ChannelReader<WriteableBitmap> reader)
+    private async Task UpdateBscanWithLoadedFramesAsync(ChannelReader<float[,,]> reader)
     {
         try
         {
-            await foreach (var bitmap in reader.ReadAllAsync(_cts.Token))
-            { BscanLoaded = bitmap; }
+            await foreach (var floatData in reader.ReadAllAsync(_cts.Token))
+            {
+                if (RasterNum == 1)
+                {
+                    var floatData2D = floatData.To2DArray();
+                    var bitmap = await _imageReader.ConvertFloatArrayToGrayImageAsync(floatData2D);
+                    BscanLoaded = bitmap;
+                }
+                else
+                {
+                    var bitmap = await _imageReader.ConvertFloat3DArrayToColorImageAsync(floatData);
+                    BscanLoaded = bitmap;
+                }
+            }
         }
         catch (ChannelClosedException)
         { } // 通道关闭，正常退出
