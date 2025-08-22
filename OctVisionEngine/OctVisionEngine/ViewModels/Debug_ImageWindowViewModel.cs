@@ -96,12 +96,9 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
             // 创建容量为5的有界Channel，避免消耗过多内存
             var channel = Channel.CreateBounded<WriteableBitmap>(new BoundedChannelOptions(5)
             { FullMode = BoundedChannelFullMode.DropOldest });
-            // 启动消费者任务
-            var displayTask = DisplayFramesAsync(channel.Reader);
-            // 生产者：读取图像
-            await ProduceFramesAsync(channel.Writer);
-            // 等待显示任务完成
-            await displayTask;
+            var displayTask = UpdateBscanWithLoadedFramesAsync(channel.Reader); // 启动消费者任务
+            await LoadFramesAsync(channel.Writer); // 生产者：读取图像
+            await displayTask;// 等待显示任务完成
         }
         catch (OperationCanceledException)
         { Console.WriteLine("加载操作已取消。"); }
@@ -111,12 +108,11 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         { IsProcessing = false; }
     }
 
-    private async Task ProduceFramesAsync(ChannelWriter<WriteableBitmap> writer)
+    private async Task LoadFramesAsync(ChannelWriter<WriteableBitmap> writer)
     {
         try
         {
-            await foreach (var bitmap in _imageReader.LoadFramesSequenceFromBinAsync(SelectedFilePath, RasterNum,
-                               _cts.Token))
+            await foreach (var bitmap in _imageReader.LoadFramesSequenceFromBinAsync(SelectedFilePath, RasterNum, _cts.Token))
             {
                 while (IsPaused)
                 { await Task.Delay(300, _cts.Token); }
@@ -127,21 +123,15 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         { writer.Complete(); }
     }
 
-    private async Task DisplayFramesAsync(ChannelReader<WriteableBitmap> reader)
+    private async Task UpdateBscanWithLoadedFramesAsync(ChannelReader<WriteableBitmap> reader)
     {
         try
         {
             await foreach (var bitmap in reader.ReadAllAsync(_cts.Token))
-            {
-                // while (_isPaused)
-                // { await Task.Delay(300, _cts.Token); }
-                ImagePanelDebug = bitmap;
-            }
+            { ImagePanelDebug = bitmap; }
         }
         catch (ChannelClosedException)
-        {
-            // 通道关闭，正常退出
-        }
+        { } // 通道关闭，正常退出
     }
 
 
