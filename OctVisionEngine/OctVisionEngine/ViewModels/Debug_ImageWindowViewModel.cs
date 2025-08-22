@@ -25,15 +25,15 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     // 1) 内部用的字段_imagePanelDebug和外部调用的ImagePanelDebug相互隔离, 并使用get set方法互通;
     // 2) 针对set, 自动实现INotifyPropertyChanged(), 一但值变动及时通知View层更新.
     // 关于类/方法的partial声明: 当该函数中使用了来自其他源的方法, 需要声明除了自己在的代码范围, 这个类还同时使用了来自其他源的方法
-    // private WriteableBitmap _imagePanelDebug;
+    // private WriteableBitmap _bscanLoaded;
     // public event PropertyChangedEventHandler PropertyChanged;
     //
     // public WriteableBitmap ImagePanel_Debug
     // {
-    //     get => _imagePanelDebug;
+    //     get => _bscanLoaded;
     //     set
     //     {
-    //         _imagePanelDebug = value;
+    //         _bscanLoaded = value;
     //         OnPropertyChanged();
     //     }
     // }
@@ -41,7 +41,8 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     // { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
     [ObservableProperty] private bool _isFileSelected = false;
     [ObservableProperty] private string _selectedFilePath = string.Empty;
-    [ObservableProperty] private WriteableBitmap? _imagePanelDebug;
+    [ObservableProperty] private WriteableBitmap? _bscanLoaded;
+    [ObservableProperty] private WriteableBitmap? _enfaceImage;
     [ObservableProperty] private bool _isProcessing = false;
     [ObservableProperty] private bool _isPaused = false;
     [ObservableProperty] private int _rasterNum = 1;
@@ -128,13 +129,19 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         try
         {
             await foreach (var bitmap in reader.ReadAllAsync(_cts.Token))
-            { ImagePanelDebug = bitmap; }
+            { BscanLoaded = bitmap; }
         }
         catch (ChannelClosedException)
         { } // 通道关闭，正常退出
     }
 
-
+    // private async Task UpdateEnfaceWithLoadedFramesAsync(ChannelReader<WriteableBitmap> reader)
+    // {
+    //     try
+    //     {
+    //
+    //     }
+    // }
 
     [RelayCommand]
     private void PauseResume()
@@ -156,6 +163,4 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     [RelayCommand]
     private void StopGrabFrame()
     { WeakReferenceMessenger.Default.Send(new StopGrabFrameMessage()); }
-
-
 }

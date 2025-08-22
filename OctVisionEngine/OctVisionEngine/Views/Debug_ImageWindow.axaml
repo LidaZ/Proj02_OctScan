@@ -31,6 +31,7 @@
                     Width="60" />
 
                 <Button
+                    Background="lightgreen"
                     Command="{Binding LoadFramesAndDisplayUpdateCommand}"
                     Content="Load"
                     IsEnabled="{Binding IsFileSelected}"
@@ -72,7 +73,7 @@
             <Image
                 DockPanel.Dock="Right"
                 Name="DisplayBscanImage"
-                Source="{Binding ImagePanelDebug}"
+                Source="{Binding BscanLoaded}"
                 Stretch="None"
                 VerticalAlignment="Center" />
             <Image
