@@ -23,6 +23,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     private Channel<float[,,]> _broadcastChannel;
     private float[,]? _enfaceData;
     private readonly Queue<float[]> _enfaceBuffer = new Queue<float[]>();
+    private int _currentRow = 0;
     // private readonly SemaphoreSlim _pauseSemaphore = new(1, 1);
     // 以下为手动实现CommunityToolkit.Mvvm的[ObservableProperty]的功能. 包括:
     // 1) 内部用的字段_imagePanelDebug和外部调用的ImagePanelDebug相互隔离, 并使用get set方法互通;
@@ -164,25 +165,23 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
                 if (RasterNum == 1)
                 {
                     var floatData2D = floatData.To2DArray();
-                    var projectionData = BscanProjection.MaxProjectionSpan(floatData2D, 1);
-                    // 将投影数据添加到缓冲区
-                    if (_enfaceData == null)
-                    { _enfaceData = new float[SampNumY, SampNum]; }
-
-                    _enfaceBuffer.Enqueue(projectionData);
-                    if (_enfaceBuffer.Count > SampNum)
-                    { _enfaceBuffer.Dequeue(); }
-                    // 将一维投影数据转换为2D数组以便显示
-                    var enfaceData = new float[_enfaceBuffer.Count, projectionData.Length];
-                    int row = 0;
-                    foreach (var projection in _enfaceBuffer)
+                    var projectionData = BscanProjection.MaxProjectionSpan(floatData2D, 0);
+                    // // 将投影数据添加到缓冲区
+                    // _enfaceBuffer.Enqueue(projectionData);
+                    // if (_enfaceBuffer.Count > SampNum)
+                    // { _enfaceBuffer.Dequeue(); }
+                    // 检查是否需要重新分配数组（只有在尺寸变化时才分配）
+                    if (_enfaceData == null || _enfaceData.GetLength(0) != SampNumY || _enfaceData.GetLength(1) != projectionData.Length)
                     {
-                        for (int col = 0; col < projection.Length; col++)
-                        { enfaceData[row, col] = projection[col]; }
-                        row++;
+                        _enfaceData = new float[SampNumY, projectionData.Length];
+                        _currentRow = 0;
                     }
-
-                    EnfaceImage = await _imageReader.ConvertFloatArrayToGrayImageAsync(enfaceData);
+                    // 将一维投影数据转换为2D数组以便显示
+                    // var enfaceData = new float[_enfaceBuffer.Count, projectionData.Length];
+                    for (int col = 0; col < projectionData.Length; col++)
+                    { _enfaceData[_currentRow, col] = projectionData[col]; }
+                    _currentRow = (_currentRow + 1) % SampNumY;
+                    EnfaceImage = await _imageReader.ConvertFloatArrayToGrayImageAsync(_enfaceData);
                 }
             }
         }
