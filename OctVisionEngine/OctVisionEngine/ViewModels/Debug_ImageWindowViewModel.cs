@@ -20,6 +20,8 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
 {
     private readonly Debug_LoadFramesFromBin _imageReader;
     private CancellationTokenSource _cts;
+    private Channel<float[,,]> _broadcastChannel;
+    private float[,]? _enfaceData;
     private readonly Queue<float[]> _enfaceBuffer = new Queue<float[]>();
     // private readonly SemaphoreSlim _pauseSemaphore = new(1, 1);
     // 以下为手动实现CommunityToolkit.Mvvm的[ObservableProperty]的功能. 包括:
@@ -48,12 +50,13 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     [ObservableProperty] private bool _isPaused = false;
     [ObservableProperty] private int _rasterNum = 1;
     [ObservableProperty] private int _sampNum = 256;
+    [ObservableProperty] private int _sampNumY;
 
     public Debug_ImageWindowViewModel()
     {
         _imageReader = new Debug_LoadFramesFromBin();
         _cts = new CancellationTokenSource();
-        var MAX_ENFACE_FRAMES = SampNum;
+        SampNumY = SampNum;
         // _ = LoadFramesContinuouslyCommand.ExecuteAsync(null);
         WeakReferenceMessenger.Default.Register<StopGrabFrameMessage>
             (this, (recipient, message) => HandleStopGrabFrame(message));
@@ -91,22 +94,21 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
 
     
     [RelayCommand]
-    private async Task LoadFramesAndDisplayUpdateAsync()
+    private async Task LoadFramesToUpdateDisplayAsync()
     {
         IsProcessing = true;
         try
         {
-            var mainChannel = Channel.CreateBounded<float[,,]>(new BoundedChannelOptions(5)
-                { FullMode = BoundedChannelFullMode.DropOldest }); // 创建容量为5的有界Channel，避免消耗过多内存
-            var secondChannel = Channel.CreateBounded<float[,,]>(new BoundedChannelOptions(5)
-                { FullMode = BoundedChannelFullMode.DropOldest });
-            var distributeTask = DistributeDataAsync(mainChannel.Reader, secondChannel.Writer);
+            _broadcastChannel = Channel.CreateBounded<float[,,]>(new BoundedChannelOptions(10)
+            {
+                FullMode = BoundedChannelFullMode.DropOldest,
+                SingleReader = false  // 允许多个读取者
+            });
 
-            var bscanDisplayTask = UpdateBscanWithLoadedFramesAsync(mainChannel.Reader);
-            var enfaceDisplayTask = UpdateEnfaceWithLoadedFramesAsync(secondChannel.Reader);
-
-            var loadTask = LoadFramesAsync(mainChannel.Writer);
-            await Task.WhenAll(loadTask, distributeTask, bscanDisplayTask, enfaceDisplayTask);
+            var bscanDisplayTask = UpdateBscanWithLoadedFramesAsync(_broadcastChannel.Reader);
+            var enfaceDisplayTask = UpdateEnfaceWithLoadedFramesAsync(_broadcastChannel.Reader);
+            var loadTask = LoadFramesAsync(_broadcastChannel.Writer);
+            await Task.WhenAll(loadTask, bscanDisplayTask, enfaceDisplayTask);
         }
         catch (OperationCanceledException)
         { Console.WriteLine("加载操作已取消。"); }
@@ -115,18 +117,6 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         finally
         { IsProcessing = false; }
     }
-
-    private async Task DistributeDataAsync(ChannelReader<float[,,]> reader, ChannelWriter<float[,,]> writer)
-    {
-        try
-        {
-            await foreach (var data in reader.ReadAllAsync(_cts.Token))
-            { await writer.WriteAsync(data, _cts.Token); }
-        }
-        finally
-        { writer.Complete(); }
-    }
-
 
 
     private async Task LoadFramesAsync(ChannelWriter<float[,,]> writer)
@@ -176,6 +166,9 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
                     var floatData2D = floatData.To2DArray();
                     var projectionData = BscanProjection.MaxProjectionSpan(floatData2D, 1);
                     // 将投影数据添加到缓冲区
+                    if (_enfaceData == null)
+                    { _enfaceData = new float[SampNumY, SampNum]; }
+
                     _enfaceBuffer.Enqueue(projectionData);
                     if (_enfaceBuffer.Count > SampNum)
                     { _enfaceBuffer.Dequeue(); }
@@ -200,6 +193,10 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     private void PauseResume()
     { IsPaused = !IsPaused; }
 
+    [RelayCommand]
+    private void StopGrabFrame()
+    { WeakReferenceMessenger.Default.Send(new StopGrabFrameMessage()); }
+
     private void HandleStopGrabFrame(StopGrabFrameMessage message)
     {
         if (_cts != null && !_cts.IsCancellationRequested)
@@ -208,12 +205,12 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
             _cts.Dispose();
         }
         _cts = new CancellationTokenSource();
+        _broadcastChannel?.Writer.Complete();
         IsProcessing = false;
         IsPaused = false;
+        _enfaceBuffer.Clear();
         // if (_pauseSemaphore.CurrentCount == 0) { _pauseSemaphore.Release(); }
     }
 
-    [RelayCommand]
-    private void StopGrabFrame()
-    { WeakReferenceMessenger.Default.Send(new StopGrabFrameMessage()); }
+
 }

@@ -32,7 +32,7 @@
 
                 <Button
                     Background="lightgreen"
-                    Command="{Binding LoadFramesAndDisplayUpdateCommand}"
+                    Command="{Binding LoadFramesToUpdateDisplayCommand}"
                     Content="Load"
                     IsEnabled="{Binding IsFileSelected}"
                     Width="60" />
