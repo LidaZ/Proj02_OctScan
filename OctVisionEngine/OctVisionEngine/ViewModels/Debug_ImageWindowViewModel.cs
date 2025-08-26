@@ -143,7 +143,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
                 if (RasterNum == 1)
                 {
                     var floatData2D = floatData.To2DArray();
-                    BscanLoaded = await _imageReader.ConvertFloatArrayToGrayImageAsync(floatData2D);
+                    BscanLoaded = await _imageReader.ConvertFloatArrayBscanToGrayAsync(floatData2D);
                 }
                 // else
                 // {
@@ -175,7 +175,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
                     for (int col = 0; col < projectionData.Length; col++)
                     { _enfaceData[_currentRow, col] = projectionData[col]; }
                     _currentRow = (_currentRow + 1) % SampNumY;
-                    EnfaceImage = await _imageReader.ConvertFloatArrayToGrayImageAsync(_enfaceData);
+                    EnfaceImage = await _imageReader.ConvertFloatArrayEnfaceToGrayAsync(_enfaceData);
                 }
             }
         }
