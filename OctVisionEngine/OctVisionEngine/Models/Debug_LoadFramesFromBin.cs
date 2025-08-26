@@ -18,8 +18,8 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
 {
     private readonly float _dbRange;
     private int _blockSizeRead;
-    private WriteableBitmap? _bscanBitmap;
-    private WriteableBitmap? _enfaceBitmap;
+    // private WriteableBitmap? _bscanBitmap;
+    // private WriteableBitmap? _enfaceBitmap;
     [ObservableProperty] private float _minDb = -25f;
     [ObservableProperty] private float _maxDb = 25f;
     [ObservableProperty] private int _alinesPerFrame = 256;
@@ -130,8 +130,7 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
         // 这通知了绑定系统 BscanLoaded 属性已更新。但由于 BscanLoaded 的值（_bscanBitmap 的引用）没有变化，
         // Avalonia 的 Image 控件可能忽略此通知，认为 Source 没有实质性更改
         // if (_bscanBitmap == null || _bscanBitmap.PixelSize.Width != bscanWidth || _bscanBitmap.PixelSize.Height != bscanHeight)
-        _bscanBitmap = new WriteableBitmap(new PixelSize(bscanWidth, bscanHeight), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
-
+        var _bscanBitmap = new WriteableBitmap(new PixelSize(bscanWidth, bscanHeight), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
         await Task.Run(() =>
         {
             using var lockedBitmap = _bscanBitmap.Lock();
@@ -161,8 +160,7 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
             throw new ArgumentNullException(nameof(enfaceFloatArray));
         int enfaceWidth = enfaceFloatArray.GetLength(0);   // AlinesPerFrame = 800
         int enfaceHight = enfaceFloatArray.GetLength(1);  // PixelsPerAline = 256
-
-        _enfaceBitmap = new WriteableBitmap(new PixelSize(enfaceWidth, enfaceHight), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
+        var _enfaceBitmap = new WriteableBitmap(new PixelSize(enfaceWidth, enfaceHight), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
         await Task.Run(() =>
         {
             using var lockedBitmap = _enfaceBitmap.Lock();
