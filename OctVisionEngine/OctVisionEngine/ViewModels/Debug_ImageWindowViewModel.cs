@@ -143,13 +143,15 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
                 if (RasterNum == 1)
                 {
                     var floatData2D = floatData.To2DArray();
-                    BscanLoaded = await _imageReader.ConvertFloatArrayBscanToGrayAsync(floatData2D);
+                    BscanLoaded = await _imageReader.ConvertFloat2dArrayToGrayAsync(floatData2D);
+                    Console.WriteLine("RasterNum = 1");
                 }
-                // else
-                // {
-                //     var bitmap = await _imageReader.ConvertFloat3DArrayToColorImageAsync(floatData);
-                //     BscanLoaded = bitmap;
-                // }
+                else if (RasterNum > 1)
+                {
+                    var bitmap = await _imageReader.ConvertFloat3dArrayToRgbAsync(floatData);
+                    BscanLoaded = bitmap;
+                    Console.WriteLine("RasterNum != 1");
+                }
             }
         }
         catch (ChannelClosedException) { } // 通道关闭，正常退出
@@ -175,7 +177,11 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
                     for (int col = 0; col < projectionData.Length; col++)
                     { _enfaceData[_currentRow, col] = projectionData[col]; }
                     _currentRow = (_currentRow + 1) % SampNumY;
-                    EnfaceImage = await _imageReader.ConvertFloatArrayEnfaceToGrayAsync(_enfaceData);
+                    EnfaceImage = await _imageReader.ConvertFloat2dArrayToGrayAsync(_enfaceData);
+                }
+                else if (RasterNum > 1)
+                {
+                    EnfaceImage = null;
                 }
             }
         }

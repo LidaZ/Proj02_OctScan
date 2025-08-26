@@ -53,18 +53,18 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
                 }
                 SwapByteEndianForFloat(buffer.AsSpan(0, _blockSizeRead));
                 // WriteableBitmap bitmapAfterConversion;
-                if (rasterNumber == 1)
+                if (rasterNumber >= 1)
                 {
                     // var floatData2D = new float[AlinesPerFrame, PixelsPerAline];
                     Buffer.BlockCopy(buffer, 0, floatData3D, 0, _blockSizeRead);
-                    // bitmapAfterConversion = await ConvertFloatArrayBscanToGrayAsync(floatData2D);
+                    // bitmapAfterConversion = await ConvertFloat2dArrayToGrayAsync(floatData2D);
                     yield return floatData3D;
                 }
                 // else
                 // {
                 //     // var floatData3D = new float[rasterNumber, AlinesPerFrame, PixelsPerAline];
                 //     Buffer.BlockCopy(buffer, 0, floatData3D, 0, _blockSizeRead);
-                //     // bitmapAfterConversion = await ConvertFloat3DArrayToColorImageAsync(floatData3D);
+                //     // bitmapAfterConversion = await ConvertFloat3dArrayToRgbAsync(floatData3D);
                 // }
                 // yield return bitmapAfterConversion;
             }
@@ -89,7 +89,7 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
     //             SwapByteEndianForFloat(buffer);
     //             Buffer.BlockCopy(buffer, 0, floatData, 0, _blockSizeOfBscan);
     //
-    //             var bitmapAfterConversion = await ConvertFloatArrayBscanToGrayAsync(floatData);
+    //             var bitmapAfterConversion = await ConvertFloat2dArrayToGrayAsync(floatData);
     //             yield return bitmapAfterConversion;
     //             // return floatData;
     //         }
@@ -120,7 +120,7 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
         }
     }
 
-    public async Task<WriteableBitmap> ConvertFloatArrayBscanToGrayAsync(float[,] bscanFloatArray)
+    public async Task<WriteableBitmap> ConvertFloat2dArrayToGrayAsync(float[,] bscanFloatArray)
     {
         if (bscanFloatArray == null)
             throw new ArgumentNullException(nameof(bscanFloatArray));
@@ -154,38 +154,38 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
         return _bscanBitmap;
     }
 
-    public async Task<WriteableBitmap> ConvertFloatArrayEnfaceToGrayAsync(float[,] enfaceFloatArray)
-    {
-        if (enfaceFloatArray == null)
-            throw new ArgumentNullException(nameof(enfaceFloatArray));
-        int enfaceWidth = enfaceFloatArray.GetLength(0);   // AlinesPerFrame = 800
-        int enfaceHight = enfaceFloatArray.GetLength(1);  // PixelsPerAline = 256
-        var _enfaceBitmap = new WriteableBitmap(new PixelSize(enfaceWidth, enfaceHight), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
-        await Task.Run(() =>
-        {
-            using var lockedBitmap = _enfaceBitmap.Lock();
-            unsafe
-            {
-                uint* pixelPtr = (uint*)lockedBitmap.Address; // 直接用uint指针，一次写4个字节
-                int stride = lockedBitmap.RowBytes / 4; // uint步长
-                Parallel.For(0, enfaceHight, y =>
-                {
-                    for (int x = 0; x < enfaceWidth; x++)
-                    {
-                        byte gray = (byte)(Math.Max(0f, Math.Min(1f, (enfaceFloatArray[x, y] - _minDb) / _dbRange)) * 255f);
-                        uint grayPixel = 0xFF000000u | ((uint)gray << 16) | ((uint)gray << 8) | gray; // BGRA (Little-endian)
-                        // uint grayPixel = ((uint)gray << 24) | ((uint)gray << 16) | ((uint)gray << 8) | 0xFF; //Big-endian,
-                        // Console.WriteLine($"原值: {_floatData[x, y]}; 对应灰度值: {gray}");
-                        pixelPtr[y * stride + x] = grayPixel;
-                    }
-                });
-            }
-        });
-        return _enfaceBitmap;
-    }
+    // public async Task<WriteableBitmap> ConvertFloatArrayEnfaceToGrayAsync(float[,] enfaceFloatArray)
+    // {
+    //     if (enfaceFloatArray == null)
+    //         throw new ArgumentNullException(nameof(enfaceFloatArray));
+    //     int enfaceWidth = enfaceFloatArray.GetLength(0);   // AlinesPerFrame = 800
+    //     int enfaceHight = enfaceFloatArray.GetLength(1);  // PixelsPerAline = 256
+    //     var _enfaceBitmap = new WriteableBitmap(new PixelSize(enfaceWidth, enfaceHight), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
+    //     await Task.Run(() =>
+    //     {
+    //         using var lockedBitmap = _enfaceBitmap.Lock();
+    //         unsafe
+    //         {
+    //             uint* pixelPtr = (uint*)lockedBitmap.Address; // 直接用uint指针，一次写4个字节
+    //             int stride = lockedBitmap.RowBytes / 4; // uint步长
+    //             Parallel.For(0, enfaceHight, y =>
+    //             {
+    //                 for (int x = 0; x < enfaceWidth; x++)
+    //                 {
+    //                     byte gray = (byte)(Math.Max(0f, Math.Min(1f, (enfaceFloatArray[x, y] - _minDb) / _dbRange)) * 255f);
+    //                     uint grayPixel = 0xFF000000u | ((uint)gray << 16) | ((uint)gray << 8) | gray; // BGRA (Little-endian)
+    //                     // uint grayPixel = ((uint)gray << 24) | ((uint)gray << 16) | ((uint)gray << 8) | 0xFF; //Big-endian,
+    //                     // Console.WriteLine($"原值: {_floatData[x, y]}; 对应灰度值: {gray}");
+    //                     pixelPtr[y * stride + x] = grayPixel;
+    //                 }
+    //             });
+    //         }
+    //     });
+    //     return _enfaceBitmap;
+    // }
 
 
-    public async Task<WriteableBitmap> ConvertFloat3DArrayToColorImageAsync(float[,,] floatData3D)
+    public async Task<WriteableBitmap> ConvertFloat3dArrayToRgbAsync(float[,,] floatData3D)
     {
         if (floatData3D == null)
             throw new ArgumentNullException(nameof(floatData3D));
