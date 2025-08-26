@@ -120,14 +120,18 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
         }
     }
 
-    public async Task<WriteableBitmap> ConvertFloatArrayBscanToGrayAsync(float[,] floatArrayBscan)
+    public async Task<WriteableBitmap> ConvertFloatArrayBscanToGrayAsync(float[,] bscanFloatArray)
     {
-        if (floatArrayBscan == null)
-            throw new ArgumentNullException(nameof(floatArrayBscan));
-        int bscanWidth = floatArrayBscan.GetLength(0);   // AlinesPerFrame = 800
-        int bscanHeight = floatArrayBscan.GetLength(1);  // PixelsPerAline = 256
-
+        if (bscanFloatArray == null)
+            throw new ArgumentNullException(nameof(bscanFloatArray));
+        int bscanWidth = bscanFloatArray.GetLength(0);   // AlinesPerFrame = 800
+        int bscanHeight = bscanFloatArray.GetLength(1);  // PixelsPerAline = 256
+        // 你在 UpdateBscanWithLoadedFramesAsync 中调用 OnPropertyChanged(nameof(BscanLoaded))，
+        // 这通知了绑定系统 BscanLoaded 属性已更新。但由于 BscanLoaded 的值（_bscanBitmap 的引用）没有变化，
+        // Avalonia 的 Image 控件可能忽略此通知，认为 Source 没有实质性更改
+        // if (_bscanBitmap == null || _bscanBitmap.PixelSize.Width != bscanWidth || _bscanBitmap.PixelSize.Height != bscanHeight)
         _bscanBitmap = new WriteableBitmap(new PixelSize(bscanWidth, bscanHeight), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
+
         await Task.Run(() =>
         {
             using var lockedBitmap = _bscanBitmap.Lock();
@@ -139,7 +143,7 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
                 {
                     for (int x = 0; x < bscanWidth; x++)
                     {
-                        byte gray = (byte)(Math.Max(0f, Math.Min(1f, (floatArrayBscan[x, y] - _minDb) / _dbRange)) * 255f);
+                        byte gray = (byte)(Math.Max(0f, Math.Min(1f, (bscanFloatArray[x, y] - _minDb) / _dbRange)) * 255f);
                         uint grayPixel = 0xFF000000u | ((uint)gray << 16) | ((uint)gray << 8) | gray; // BGRA (Little-endian)
                         // uint grayPixel = ((uint)gray << 24) | ((uint)gray << 16) | ((uint)gray << 8) | 0xFF; //Big-endian,
                         // Console.WriteLine($"原值: {_floatData[x, y]}; 对应灰度值: {gray}");
@@ -151,12 +155,13 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
         return _bscanBitmap;
     }
 
-    public async Task<WriteableBitmap> ConvertFloatArrayEnfaceToGrayAsync(float[,] floatDataEnface)
+    public async Task<WriteableBitmap> ConvertFloatArrayEnfaceToGrayAsync(float[,] enfaceFloatArray)
     {
-        if (floatDataEnface == null)
-            throw new ArgumentNullException(nameof(floatDataEnface));
-        int enfaceWidth = floatDataEnface.GetLength(0);   // AlinesPerFrame = 800
-        int enfaceHight = floatDataEnface.GetLength(1);  // PixelsPerAline = 256
+        if (enfaceFloatArray == null)
+            throw new ArgumentNullException(nameof(enfaceFloatArray));
+        int enfaceWidth = enfaceFloatArray.GetLength(0);   // AlinesPerFrame = 800
+        int enfaceHight = enfaceFloatArray.GetLength(1);  // PixelsPerAline = 256
+
         _enfaceBitmap = new WriteableBitmap(new PixelSize(enfaceWidth, enfaceHight), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
         await Task.Run(() =>
         {
@@ -169,7 +174,7 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
                 {
                     for (int x = 0; x < enfaceWidth; x++)
                     {
-                        byte gray = (byte)(Math.Max(0f, Math.Min(1f, (floatDataEnface[x, y] - _minDb) / _dbRange)) * 255f);
+                        byte gray = (byte)(Math.Max(0f, Math.Min(1f, (enfaceFloatArray[x, y] - _minDb) / _dbRange)) * 255f);
                         uint grayPixel = 0xFF000000u | ((uint)gray << 16) | ((uint)gray << 8) | gray; // BGRA (Little-endian)
                         // uint grayPixel = ((uint)gray << 24) | ((uint)gray << 16) | ((uint)gray << 8) | 0xFF; //Big-endian,
                         // Console.WriteLine($"原值: {_floatData[x, y]}; 对应灰度值: {gray}");
