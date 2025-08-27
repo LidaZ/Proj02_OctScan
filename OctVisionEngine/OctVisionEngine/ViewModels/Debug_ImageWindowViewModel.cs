@@ -171,7 +171,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
                     Task.WaitAll(bscanTask, hsvTask);
                     return (bscanTask.Result, hsvTask.Result);
                 }, _cts.Token);
-                BscanLoaded = bscanBitmap;
+                // BscanLoaded = bscanBitmap;
                 // // 使用enfaceHsvArray计算EnfaceImage
                 // var projectionData = BscanProjection.MaxProjectionSpan(enfaceHsvArray, 0);
                 // // 这里应该用 projectionData 更新 _enfaceBitmap，然后赋给 EnfaceImage
