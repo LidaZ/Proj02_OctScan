@@ -102,14 +102,18 @@
                 VerticalAlignment="Top" />
         </DockPanel>
 
-        <DockPanel
+        <!--  Right: Control panels  -->
+        <Grid
             Background="LightGray"
             Grid.Row="1"
             HorizontalAlignment="Right"
             Margin="10,10"
             Width="300">
             <StackPanel>
-                <StackPanel Margin="10">
+                <Grid
+                    Height="50"
+                    Margin="10"
+                    RowSpacing="10">
                     <TextBlock FontSize="16" Text="Scan Range" />
                     <Slider
                         Height="30"
@@ -119,9 +123,12 @@
                         TickFrequency="1"
                         Value="3"
                         Width="120" />
-                </StackPanel>
+                </Grid>
 
-                <StackPanel Margin="10">
+                <StackPanel
+                    Height="50"
+                    Margin="10"
+                    Spacing="10">
                     <TextBlock FontSize="16" Text="Sampling points" />
                     <NumericUpDown
                         FontSize="16"
@@ -133,7 +140,10 @@
                         Width="150" />
                 </StackPanel>
 
-                <StackPanel Margin="10">
+                <StackPanel
+                    Height="50"
+                    Margin="10"
+                    Spacing="10">
                     <TextBlock FontSize="16" Text="Repeat frame" />
                     <NumericUpDown
                         FontSize="16"
@@ -144,8 +154,10 @@
                         Value="{Binding RasterNum}"
                         Width="120" />
                 </StackPanel>
+
+
             </StackPanel>
-        </DockPanel>
+        </Grid>
 
     </Grid>
 
