@@ -20,7 +20,7 @@ namespace OctVisionEngine.ViewModels;
 
 public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPropertyChanged
 {
-    private readonly Debug_LoadFramesFromBin _imageReader;
+    private readonly Debug_LoadFramesFromBin _loadFramesFromBin;
     private CancellationTokenSource _cts;
     private Channel<float[,,]> _broadcastChannel;
     private float[,]? _enfaceArray;
@@ -60,7 +60,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
 
     public Debug_ImageWindowViewModel()
     {
-        _imageReader = new Debug_LoadFramesFromBin();
+        _loadFramesFromBin = new Debug_LoadFramesFromBin();
         _cts = new CancellationTokenSource();
         SampNumY = SampNumX;
         // _ = LoadFramesContinuouslyCommand.ExecuteAsync(null);
@@ -129,13 +129,13 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     {
         try
         {
-            await foreach (var floatData3D in _imageReader.LoadFramesSequenceFromBinAsync(SelectedFilePath, RasterNum, _cts.Token))
+            await foreach (var floatData3D in _loadFramesFromBin.LoadFramesSequenceFromBinAsync(SelectedFilePath, RasterNum, _cts.Token))
             {
                 while (IsPaused)
                 { await Task.Delay(300, _cts.Token); }
 
                 while (_broadcastChannel.Reader.Count >= ChannelCapacity - 2)
-                { await Task.Delay(50, _cts.Token); }  // 从本地Bin读文件的话，从channel往外读的速度跟不上往里写的速度，尤其是RasterNum==1时
+                { await Task.Delay(10, _cts.Token); }  // 从本地Bin读文件的话，从channel往外读的速度跟不上往里写的速度，尤其是RasterNum==1时
 
                 await writer.WriteAsync(floatData3D, _cts.Token);
                 CurrentChannelCapacity = _broadcastChannel.Reader.Count;
@@ -156,46 +156,53 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
                 CurrentChannelCapacity = _broadcastChannel.Reader.Count;
                 if (RasterNum == 1)
                 {
-                    var (bscanBitmap, enfaceBitmap) = await Task.Run(async () =>
-                    {
-                        // 任务1：计算B-scan位图，与任务2并行
-                        var bscanArray = blockAs3dArray.To2DArray();
-                        var bscanTask = _imageReader.ConvertFloat2dArrayToGrayAsync(bscanArray);
-                        // 任务2：计算En-face位图，与任务1并行
-                        var projection1dArray = BscanProjection.MaxProjectionSpan(bscanArray, 0);
-                        // UpdateEnfaceArray(projection1dArray); // 同步封装，无额外开销
-                        BscanProjectionUpdater.UpdateEnfaceArray(projection1dArray, ref _enfaceArray, ref _currentRow, SampNumY, SampNumX);
-                        var enfaceTask = _imageReader.ConvertFloat2dArrayToGrayAsync(_enfaceArray);
+                    var bscanArray = blockAs3dArray.To2DArray();
+                    var bscanTask = _loadFramesFromBin.ConvertFloat2dArrayToGrayAsync(bscanArray);
+                    var enfaceTask = ProcessEnfaceAsync(bscanArray);
+                    // 等待两个任务完成
+                    var bscanBitmap = await bscanTask;
+                    var enfaceBitmap = await enfaceTask;
 
-                        await Task.WhenAll(bscanTask, enfaceTask);
-                        return (bscanTask.Result, enfaceTask.Result);
-                    }, _cts.Token);
                     BscanLoaded = bscanBitmap;
                     EnfaceImage = enfaceBitmap;
                 }
 
                 else if (RasterNum > 1)
                 {
-                    var (bscanBitmap, enfaceBitmap) = await Task.Run(async () =>
-                    {
-                        // 任务1：计算B-scan位图
-                        var bscanTask = _imageReader.ConvertFloat3dArrayToRgbAsync(blockAs3dArray);
-                        // 任务2：计算En-face位图。它依赖于一个前置的同步计算。
-                        var hsvArray = _imageReader.ConvertFloat3dArrayToHsv(blockAs3dArray); // 同步计算
-                        var projectionHsvArray = BscanProjection.MaxHueProjectionSpan(hsvArray, 0);
-                        // UpdateEnfaceHsvArray(projectionHsvArray); // 同步封装，无额外开销
-                        BscanProjectionUpdater.UpdateEnfaceHsvArray(projectionHsvArray, ref _enfaceHsvArray, ref _currentRow, SampNumY, SampNumX);
-                        var enfaceTask = _imageReader.ConvertFloat3dArrayToRgbAsync(_enfaceHsvArray); // 异步转换
+                    var bscanTask = _loadFramesFromBin.ConvertFloat3dArrayToRgbAsync(blockAs3dArray);
+                    var enfaceTask = ProcessEnfaceHsvAsync(blockAs3dArray);
+                    // 等待两个任务完成
+                    var bscanBitmap = await bscanTask;
+                    var enfaceBitmap = await enfaceTask;
 
-                        await Task.WhenAll(bscanTask, enfaceTask);
-                        return (bscanTask.Result, enfaceTask.Result);
-                    }, _cts.Token);
                     BscanLoaded = bscanBitmap;
                     EnfaceImage = enfaceBitmap;
                 }
             }
         }
         catch (ChannelClosedException) { }
+    }
+
+
+    private async Task<WriteableBitmap> ProcessEnfaceAsync(float[,] bscanArray)
+    {
+        await Task.Run(() =>
+        {
+            var projection1dArray = BscanProjection.MaxProjectionSpan(bscanArray, 0);
+            BscanProjectionUpdater.UpdateEnfaceArray(projection1dArray, ref _enfaceArray, ref _currentRow, SampNumY, SampNumX);
+        }, _cts.Token);
+        return await _loadFramesFromBin.ConvertFloat2dArrayToGrayAsync(_enfaceArray);
+    }
+
+    private async Task<WriteableBitmap?> ProcessEnfaceHsvAsync(float[,,] blockAs3dArray)
+    {
+        await Task.Run(() =>
+        {
+            var hsvArray = _loadFramesFromBin.ConvertFloat3dArrayToHsv(blockAs3dArray);
+            var projectionHsvArray = BscanProjection.MaxHueProjectionSpan(hsvArray, 0);
+            BscanProjectionUpdater.UpdateEnfaceHsvArray(projectionHsvArray, ref _enfaceHsvArray, ref _currentRow, SampNumY, SampNumX);
+        }, _cts.Token);
+        return await _loadFramesFromBin.ConvertFloat3dArrayToRgbAsync(_enfaceHsvArray);
     }
 
 
