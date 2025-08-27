@@ -115,23 +115,26 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
         // Avalonia 的 Image 控件可能忽略此通知，认为 Source 没有实质性更改
         // if (_bscanBitmap == null || _bscanBitmap.PixelSize.Width != bscanWidth || _bscanBitmap.PixelSize.Height != bscanHeight)
         var _bscanBitmap = new WriteableBitmap(new PixelSize(bscanWidth, bscanHeight), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
-        using var lockedBitmap = _bscanBitmap.Lock();
-        unsafe
+        await Task.Run(() =>
         {
-            uint* pixelPtr = (uint*)lockedBitmap.Address; // 直接用uint指针，一次写4个字节
-            int stride = lockedBitmap.RowBytes / 4; // uint步长
-            Parallel.For(0, bscanHeight, y =>
+            using var lockedBitmap = _bscanBitmap.Lock();
+            unsafe
             {
-                for (int x = 0; x < bscanWidth; x++)
+                uint* pixelPtr = (uint*)lockedBitmap.Address; // 直接用uint指针，一次写4个字节
+                int stride = lockedBitmap.RowBytes / 4; // uint步长
+                Parallel.For(0, bscanHeight, y =>
                 {
-                    byte gray = (byte)(Math.Max(0f, Math.Min(1f, (bscanFloatArray[x, y] - _minDb) / _dbRange)) * 255f);
-                    uint grayPixel = 0xFF000000u | ((uint)gray << 16) | ((uint)gray << 8) | gray; // BGRA (Little-endian)
-                    // uint grayPixel = ((uint)gray << 24) | ((uint)gray << 16) | ((uint)gray << 8) | 0xFF; //Big-endian,
-                    // Console.WriteLine($"原值: {_floatData[x, y]}; 对应灰度值: {gray}");
-                    pixelPtr[y * stride + x] = grayPixel;
-                }
-            });
-        }
+                    for (int x = 0; x < bscanWidth; x++)
+                    {
+                        byte gray = (byte)(Math.Max(0f, Math.Min(1f, (bscanFloatArray[x, y] - _minDb) / _dbRange)) * 255f);
+                        uint grayPixel = 0xFF000000u | ((uint)gray << 16) | ((uint)gray << 8) | gray; // BGRA (Little-endian)
+                        // uint grayPixel = ((uint)gray << 24) | ((uint)gray << 16) | ((uint)gray << 8) | 0xFF; //Big-endian,
+                        // Console.WriteLine($"原值: {_floatData[x, y]}; 对应灰度值: {gray}");
+                        pixelPtr[y * stride + x] = grayPixel;
+                    }
+                });
+            }
+        });
         return _bscanBitmap;
     }
 
@@ -187,38 +190,41 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
         var width = floatData3D.GetLength(1);        // AlinesPerFrame
         var height = floatData3D.GetLength(2);       // PixelsPerAline
         var bitmap = new WriteableBitmap(new PixelSize(width, height), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
-        using var lockedBitmap = bitmap.Lock();
-        unsafe
+        await Task.Run(() =>
         {
-            uint* pixelPtr = (uint*)lockedBitmap.Address;
-            int stride = lockedBitmap.RowBytes / 4;
-            Parallel.For(0, height, y =>
+            using var lockedBitmap = bitmap.Lock();
+            unsafe
             {
-                for (int x = 0; x < width; x++)
+                uint* pixelPtr = (uint*)lockedBitmap.Address;
+                int stride = lockedBitmap.RowBytes / 4;
+                Parallel.For(0, height, y =>
                 {
-                    // 沿RasterNumber轴计算统计值
-                    var sum = 0f;
-                    var sumSquares = 0f;
-                    for (int ra = 0; ra < rasterCount; ra++)
+                    for (int x = 0; x < width; x++)
                     {
-                        var arrayValue = floatData3D[ra, x, y];
-                        sum += arrayValue;
-                        sumSquares += arrayValue * arrayValue;
+                        // 沿RasterNumber轴计算统计值
+                        var sum = 0f;
+                        var sumSquares = 0f;
+                        for (int ra = 0; ra < rasterCount; ra++)
+                        {
+                            var arrayValue = floatData3D[ra, x, y];
+                            sum += arrayValue;
+                            sumSquares += arrayValue * arrayValue;
+                        }
+                        // 计算平均值和方差
+                        var mean = sum / rasterCount;
+                        var variance = (sumSquares / rasterCount) - (mean * mean);
+                        // 将统计值映射到HSV色彩空间
+                        // Hue: 方差映射到0-360度 (这里需要根据你的数据范围调整)
+                        var hue = Math.Max(0f, Math.Min(360f, variance * 10f)); // 简单的线性映射，你可以调整倍数
+                        const float saturation = 1.0f;  // Saturation: 固定为1（最饱和）
+                        var value = Math.Max(0f, Math.Min(1f, (mean - _minDb) / _dbRange));  // Value: 平均值映射到0-1
+                        var (r, g, b) = HsvToRgb(hue, saturation, value);  // HSV转RGB
+                        var colorPixel = 0xFF000000u | ((uint)(r * 255) << 16) | ((uint)(g * 255) << 8) | (uint)(b * 255);  // 转换为BGRA像素格式
+                        pixelPtr[y * stride + x] = colorPixel;
                     }
-                    // 计算平均值和方差
-                    var mean = sum / rasterCount;
-                    var variance = (sumSquares / rasterCount) - (mean * mean);
-                    // 将统计值映射到HSV色彩空间
-                    // Hue: 方差映射到0-360度 (这里需要根据你的数据范围调整)
-                    var hue = Math.Max(0f, Math.Min(360f, variance * 10f)); // 简单的线性映射，你可以调整倍数
-                    const float saturation = 1.0f;  // Saturation: 固定为1（最饱和）
-                    var value = Math.Max(0f, Math.Min(1f, (mean - _minDb) / _dbRange));  // Value: 平均值映射到0-1
-                    var (r, g, b) = HsvToRgb(hue, saturation, value);  // HSV转RGB
-                    var colorPixel = 0xFF000000u | ((uint)(r * 255) << 16) | ((uint)(g * 255) << 8) | (uint)(b * 255);  // 转换为BGRA像素格式
-                    pixelPtr[y * stride + x] = colorPixel;
-                }
-            });
-        }
+                });
+            }
+        });
         return (bitmap);
     }
 
