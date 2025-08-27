@@ -12,6 +12,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OctVisionEngine.Models;
 using System.Threading.Channels;
+using Avalonia;
+using Avalonia.Platform;
 
 
 namespace OctVisionEngine.ViewModels;
@@ -21,7 +23,8 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     private readonly Debug_LoadFramesFromBin _imageReader;
     private CancellationTokenSource _cts;
     private Channel<float[,,]> _broadcastChannel;
-    private float[,]? _enfaceData;
+    private float[,]? _enfaceArray;
+    private WriteableBitmap? _enfaceBitmap;
     private int _currentRow = 0;
     // private readonly SemaphoreSlim _pauseSemaphore = new(1, 1);
     // 以下为手动实现CommunityToolkit.Mvvm的[ObservableProperty]的功能. 包括:
@@ -49,14 +52,14 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     [ObservableProperty] private bool _isProcessing = false;
     [ObservableProperty] private bool _isPaused = false;
     [ObservableProperty] private int _rasterNum = 1;
-    [ObservableProperty] private int _sampNum = 256;
+    [ObservableProperty] private int _sampNumX = 256;
     [ObservableProperty] private int _sampNumY;
 
     public Debug_ImageWindowViewModel()
     {
         _imageReader = new Debug_LoadFramesFromBin();
         _cts = new CancellationTokenSource();
-        SampNumY = SampNum;
+        SampNumY = SampNumX;
         // _ = LoadFramesContinuouslyCommand.ExecuteAsync(null);
         WeakReferenceMessenger.Default.Register<StopGrabFrameMessage>
             (this, (recipient, message) => HandleStopGrabFrame(message));
@@ -94,7 +97,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
 
     
     [RelayCommand]
-    private async Task LoadFramesToUpdateDisplayAsync()
+    private async Task LoadFramesAndUpdateDisplayAsync()
     {
         IsProcessing = true;
         try
@@ -105,10 +108,11 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
                 SingleReader = false  // 允许多个读取者
             });
 
-            var bscanDisplayTask = UpdateBscanWithLoadedFramesAsync(_broadcastChannel.Reader);
-            var enfaceDisplayTask = UpdateEnfaceWithLoadedFramesAsync(_broadcastChannel.Reader);
+            // var bscanDisplayTask = UpdateBscanWithLoadedFramesAsync(_broadcastChannel.Reader);
+            // var enfaceDisplayTask = UpdateEnfaceWithLoadedFramesAsync(_broadcastChannel.Reader);
+            var updateDisplayTask = UpdateDisplayWithLoadedFramesAsync(_broadcastChannel.Reader);
             var loadTask = LoadFramesAsync(_broadcastChannel.Writer);
-            await Task.WhenAll(loadTask, bscanDisplayTask, enfaceDisplayTask);
+            await Task.WhenAll(loadTask, updateDisplayTask);
         }
         catch (OperationCanceledException)
         { Console.WriteLine("加载操作已取消。"); }
@@ -134,59 +138,112 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         { writer.Complete(); }
     }
 
-    private async Task UpdateBscanWithLoadedFramesAsync(ChannelReader<float[,,]> reader)
-    {
-        try
-        {
-            await foreach (var floatData in reader.ReadAllAsync(_cts.Token))
-            {
-                if (RasterNum == 1)
-                {
-                    var floatData2D = floatData.To2DArray();
-                    BscanLoaded = await _imageReader.ConvertFloat2dArrayToGrayAsync(floatData2D);
-                    Console.WriteLine("RasterNum = 1");
-                }
-                else if (RasterNum > 1)
-                {
-                    var bitmap = await _imageReader.ConvertFloat3dArrayToRgbAsync(floatData);
-                    BscanLoaded = bitmap;
-                    Console.WriteLine("RasterNum != 1");
-                }
-            }
-        }
-        catch (ChannelClosedException) { } // 通道关闭，正常退出
-    }
 
-    private async Task UpdateEnfaceWithLoadedFramesAsync(ChannelReader<float[,,]> reader)
+
+    private async Task UpdateDisplayWithLoadedFramesAsync(ChannelReader<float[,,]> reader)
+{
+    try
     {
-        try
+        await foreach (var blockAs3dArray in reader.ReadAllAsync(_cts.Token))
         {
-            await foreach (var floatData in reader.ReadAllAsync(_cts.Token))
+            if (RasterNum == 1)
             {
-                if (RasterNum == 1)
+                var bscanArray = blockAs3dArray.To2DArray();
+                BscanLoaded = await _imageReader.ConvertFloat2dArrayToGrayAsync(bscanArray);
+                // 单独处理 En-face 的逻辑
+                var projectionData = BscanProjection.MaxProjectionSpan(bscanArray, 0);
+                if (_enfaceArray == null || _enfaceArray.GetLength(0) != SampNumY || _enfaceArray.GetLength(1) != SampNumX)
                 {
-                    var floatData2D = floatData.To2DArray();
-                    var projectionData = BscanProjection.MaxProjectionSpan(floatData2D, 0);
-                    // 检查是否需要重新分配数组（只有在尺寸变化时才分配）
-                    if (_enfaceData == null || _enfaceData.GetLength(0) != SampNumY || _enfaceData.GetLength(1) != projectionData.Length)
-                    {
-                        _enfaceData = new float[SampNumY, projectionData.Length];
-                        _currentRow = 0;
-                    }
-                    // 每一个抽出的Bscan的1D投影更新到_enfaceData中指定的col
-                    for (int col = 0; col < projectionData.Length; col++)
-                    { _enfaceData[_currentRow, col] = projectionData[col]; }
-                    _currentRow = (_currentRow + 1) % SampNumY;
-                    EnfaceImage = await _imageReader.ConvertFloat2dArrayToGrayAsync(_enfaceData);
+                    _enfaceArray = new float[SampNumY, SampNumX];
+                    _currentRow = 0;
                 }
-                else if (RasterNum > 1)
+                for (int y = 0; y < projectionData.Length; y++)
+                { _enfaceArray[_currentRow, y] = projectionData[y]; }
+                _currentRow = (_currentRow + 1) % SampNumY;
+                EnfaceImage = await _imageReader.ConvertFloat2dArrayToGrayAsync(_enfaceArray);
+            }
+            else if (RasterNum > 1)
+            {
+                var (bscanBitmap, enfaceHsvArray) = await Task.Run(() =>
                 {
-                    EnfaceImage = null;
-                }
+                    var bscanTask = _imageReader.ConvertFloat3dArrayToRgbAsync(blockAs3dArray);
+                    var hsvTask = _imageReader.ConvertFloat3dArrayToHsvAsync(blockAs3dArray);
+                    Task.WaitAll(bscanTask, hsvTask);
+                    return (bscanTask.Result, hsvTask.Result);
+                }, _cts.Token);
+                BscanLoaded = bscanBitmap;
+                // // 使用enfaceHsvArray计算EnfaceImage
+                // var projectionData = BscanProjection.MaxProjectionSpan(enfaceHsvArray, 0);
+                // // 这里应该用 projectionData 更新 _enfaceBitmap，然后赋给 EnfaceImage
+                // // ...
             }
         }
-        catch (ChannelClosedException) { }
     }
+    catch (ChannelClosedException) { }
+}
+
+    // private async Task UpdateBscanWithLoadedFramesAsync(ChannelReader<float[,,]> reader)
+    // {
+    //     try
+    //     {
+    //         await foreach (var blockAs3dArrayForBscanChan in reader.ReadAllAsync(_cts.Token))
+    //         {
+    //             if (RasterNum == 1)
+    //             {
+    //                 var bscanArray = blockAs3dArrayForBscanChan.To2DArray();
+    //                 BscanLoaded = await _imageReader.ConvertFloat2dArrayToGrayAsync(bscanArray);
+    //             }
+    //             else if (RasterNum > 1)
+    //             {
+    //                 var bscanBitmap = await _imageReader.ConvertFloat3dArrayToRgbAsync(blockAs3dArrayForBscanChan);
+    //                 BscanLoaded = bscanBitmap;
+    //             }
+    //         }
+    //     }
+    //     catch (ChannelClosedException) { } // 通道关闭，正常退出
+    // }
+    //
+    // private async Task UpdateEnfaceWithLoadedFramesAsync(ChannelReader<float[,,]> reader)
+    // {
+    //     try
+    //     {
+    //         await foreach (var blockAs3dArrayForEnfaceChan in reader.ReadAllAsync(_cts.Token))
+    //         {
+    //             if (RasterNum == 1)
+    //             {
+    //                 var bscanArraySubChan = blockAs3dArrayForEnfaceChan.To2DArray();
+    //                 var projectionData = BscanProjection.MaxProjectionSpan(bscanArraySubChan, 0);
+    //                 // 检查是否需要重新分配数组（只有在尺寸变化时才分配）
+    //                 if (_enfaceArray == null || _enfaceArray.GetLength(0) != SampNumY || _enfaceArray.GetLength(1) != SampNumX)
+    //                 {
+    //                     _enfaceArray = new float[SampNumY, SampNumX];
+    //                     _currentRow = 0;
+    //                 }
+    //                 // 每一个抽出的Bscan的1D投影更新到_enfaceData中指定的col
+    //                 for (int y = 0; y < projectionData.Length; y++)
+    //                 { _enfaceArray[_currentRow, y] = projectionData[y]; }
+    //                 _currentRow = (_currentRow + 1) % SampNumY;
+    //                 EnfaceImage = await _imageReader.ConvertFloat2dArrayToGrayAsync(_enfaceArray);
+    //             }
+    //             else if (RasterNum > 1)
+    //             {
+    //                 var hsvArray = await _imageReader.ConvertFloat3dArrayToHsvAsync(blockAs3dArrayForEnfaceChan);
+    //                 var projectionData = BscanProjection.MaxProjectionSpan(hsvArray, 0);
+    //                 // if (_enfaceBitmap == null || _enfaceBitmap.PixelSize.Width != SampNumY || _enfaceBitmap.PixelSize.Height != SampNumX)
+    //                 // {
+    //                 //     _enfaceBitmap = new WriteableBitmap(new PixelSize(SampNumY, SampNumX), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
+    //                 //     _currentRow = 0;
+    //                 // }
+    //                 // for (int y = 0; y < SampNumY; y++)
+    //                 // { _enfaceBitmap[_currentRow, y] = projectionData[y]; }
+    //                 // _currentRow = (_currentRow + 1) % SampNumY;
+    //                 //
+    //                 // EnfaceImage = null;
+    //             }
+    //         }
+    //     }
+    //     catch (ChannelClosedException) { }
+    // }
 
     [RelayCommand]
     private void PauseResume()

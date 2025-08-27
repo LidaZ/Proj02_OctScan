@@ -47,26 +47,12 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
             {
                 var bytesRead = await fileStream.ReadAsync(new Memory<byte>(buffer, 0, _blockSizeRead), cancellationToken);
                 if (bytesRead < _blockSizeRead)
-                {
-                    Console.WriteLine($"读取完成，最后一块字节 {bytesRead} / {_blockSizeRead}");
-                    break;
-                }
+                { break; }  // Console.WriteLine($"读取完成，最后一块字节 {bytesRead} / {_blockSizeRead}");
                 SwapByteEndianForFloat(buffer.AsSpan(0, _blockSizeRead));
-                // WriteableBitmap bitmapAfterConversion;
-                if (rasterNumber >= 1)
-                {
-                    // var floatData2D = new float[AlinesPerFrame, PixelsPerAline];
-                    Buffer.BlockCopy(buffer, 0, floatData3D, 0, _blockSizeRead);
-                    // bitmapAfterConversion = await ConvertFloat2dArrayToGrayAsync(floatData2D);
-                    yield return floatData3D;
-                }
-                // else
-                // {
-                //     // var floatData3D = new float[rasterNumber, AlinesPerFrame, PixelsPerAline];
-                //     Buffer.BlockCopy(buffer, 0, floatData3D, 0, _blockSizeRead);
-                //     // bitmapAfterConversion = await ConvertFloat3dArrayToRgbAsync(floatData3D);
-                // }
-                // yield return bitmapAfterConversion;
+                if (rasterNumber < 1)
+                { yield break;}
+                Buffer.BlockCopy(buffer, 0, floatData3D, 0, _blockSizeRead);
+                yield return floatData3D;
             }
         }
         finally
@@ -154,44 +140,59 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
         return _bscanBitmap;
     }
 
-    // public async Task<WriteableBitmap> ConvertFloatArrayEnfaceToGrayAsync(float[,] enfaceFloatArray)
-    // {
-    //     if (enfaceFloatArray == null)
-    //         throw new ArgumentNullException(nameof(enfaceFloatArray));
-    //     int enfaceWidth = enfaceFloatArray.GetLength(0);   // AlinesPerFrame = 800
-    //     int enfaceHight = enfaceFloatArray.GetLength(1);  // PixelsPerAline = 256
-    //     var _enfaceBitmap = new WriteableBitmap(new PixelSize(enfaceWidth, enfaceHight), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
-    //     await Task.Run(() =>
-    //     {
-    //         using var lockedBitmap = _enfaceBitmap.Lock();
-    //         unsafe
-    //         {
-    //             uint* pixelPtr = (uint*)lockedBitmap.Address; // 直接用uint指针，一次写4个字节
-    //             int stride = lockedBitmap.RowBytes / 4; // uint步长
-    //             Parallel.For(0, enfaceHight, y =>
-    //             {
-    //                 for (int x = 0; x < enfaceWidth; x++)
-    //                 {
-    //                     byte gray = (byte)(Math.Max(0f, Math.Min(1f, (enfaceFloatArray[x, y] - _minDb) / _dbRange)) * 255f);
-    //                     uint grayPixel = 0xFF000000u | ((uint)gray << 16) | ((uint)gray << 8) | gray; // BGRA (Little-endian)
-    //                     // uint grayPixel = ((uint)gray << 24) | ((uint)gray << 16) | ((uint)gray << 8) | 0xFF; //Big-endian,
-    //                     // Console.WriteLine($"原值: {_floatData[x, y]}; 对应灰度值: {gray}");
-    //                     pixelPtr[y * stride + x] = grayPixel;
-    //                 }
-    //             });
-    //         }
-    //     });
-    //     return _enfaceBitmap;
-    // }
 
 
-    public async Task<WriteableBitmap> ConvertFloat3dArrayToRgbAsync(float[,,] floatData3D)
+    private void CalculateHsvValues(float[,,] floatData3D, float[,,] hsvArray)
+    {
+        var rasterCount = floatData3D.GetLength(0);
+        var width = floatData3D.GetLength(1);
+        var height = floatData3D.GetLength(2);
+        Parallel.For(0, width, x =>
+        {
+            for (int y = 0; y < height; y++)
+            {
+                var sum = 0f;
+                var sumSquares = 0f;
+                for (int ra = 0; ra < rasterCount; ra++)
+                {
+                    var arrayValue = floatData3D[ra, x, y];
+                    sum += arrayValue;
+                    sumSquares += arrayValue * arrayValue;
+                }
+
+                var mean = sum / rasterCount;
+                var variance = (sumSquares / rasterCount) - (mean * mean);
+
+                var hue = Math.Max(0f, Math.Min(360f, variance * 10f));
+                const float saturation = 1.0f;
+                var value = Math.Max(0f, Math.Min(1f, (mean - _minDb) / _dbRange));
+
+                hsvArray[0, x, y] = hue;
+                hsvArray[1, x, y] = saturation;
+                hsvArray[2, x, y] = value;
+            }
+        });
+    }
+
+
+    public async Task<float[,,]?> ConvertFloat3dArrayToHsvAsync(float[,,] floatData3D)
     {
         if (floatData3D == null)
             throw new ArgumentNullException(nameof(floatData3D));
-        int rasterCount = floatData3D.GetLength(0);  // RasterNumber
-        int width = floatData3D.GetLength(1);        // AlinesPerFrame
-        int height = floatData3D.GetLength(2);       // PixelsPerAline
+        var width = floatData3D.GetLength(1);
+        var height = floatData3D.GetLength(2);
+        var hsvArray = new float[3, width, height];
+        await Task.Run( () => { CalculateHsvValues(floatData3D, hsvArray); } );
+        return hsvArray;
+    }
+
+    public async Task<WriteableBitmap?> ConvertFloat3dArrayToRgbAsync(float[,,] floatData3D)
+    {
+        if (floatData3D == null)
+            throw new ArgumentNullException(nameof(floatData3D));
+        var rasterCount = floatData3D.GetLength(0);  // RasterNumber
+        var width = floatData3D.GetLength(1);        // AlinesPerFrame
+        var height = floatData3D.GetLength(2);       // PixelsPerAline
         var bitmap = new WriteableBitmap(new PixelSize(width, height), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Opaque);
         await Task.Run(() =>
         {
@@ -205,30 +206,30 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
                     for (int x = 0; x < width; x++)
                     {
                         // 沿RasterNumber轴计算统计值
-                        float sum = 0f;
-                        float sumSquares = 0f;
+                        var sum = 0f;
+                        var sumSquares = 0f;
                         for (int ra = 0; ra < rasterCount; ra++)
                         {
-                            float arrayValue = floatData3D[ra, x, y];
+                            var arrayValue = floatData3D[ra, x, y];
                             sum += arrayValue;
                             sumSquares += arrayValue * arrayValue;
                         }
                         // 计算平均值和方差
-                        float mean = sum / rasterCount;
-                        float variance = (sumSquares / rasterCount) - (mean * mean);
+                        var mean = sum / rasterCount;
+                        var variance = (sumSquares / rasterCount) - (mean * mean);
                         // 将统计值映射到HSV色彩空间
                         // Hue: 方差映射到0-360度 (这里需要根据你的数据范围调整)
-                        float hue = Math.Max(0f, Math.Min(360f, variance * 10f)); // 简单的线性映射，你可以调整倍数
-                        float saturation = 1.0f;  // Saturation: 固定为1（最饱和）
-                        float value = Math.Max(0f, Math.Min(1f, (mean - _minDb) / _dbRange));  // Value: 平均值映射到0-1
+                        var hue = Math.Max(0f, Math.Min(360f, variance * 10f)); // 简单的线性映射，你可以调整倍数
+                        const float saturation = 1.0f;  // Saturation: 固定为1（最饱和）
+                        var value = Math.Max(0f, Math.Min(1f, (mean - _minDb) / _dbRange));  // Value: 平均值映射到0-1
                         var (r, g, b) = HsvToRgb(hue, saturation, value);  // HSV转RGB
-                        uint colorPixel = 0xFF000000u | ((uint)(r * 255) << 16) | ((uint)(g * 255) << 8) | (uint)(b * 255);  // 转换为BGRA像素格式
+                        var colorPixel = 0xFF000000u | ((uint)(r * 255) << 16) | ((uint)(g * 255) << 8) | (uint)(b * 255);  // 转换为BGRA像素格式
                         pixelPtr[y * stride + x] = colorPixel;
                     }
                 });
             }
         });
-        return bitmap;
+        return (bitmap);
     }
 
     private static (float r, float g, float b) HsvToRgb(float h, float s, float v)
