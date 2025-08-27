@@ -23,44 +23,62 @@
             Background="LightGray"
             Grid.Row="0"
             Padding="8">
-            <StackPanel Orientation="Horizontal" Spacing="15">
-                <Button
-                    Command="{Binding SelectFileCommand}"
-                    Content="Open"
-                    IsEnabled="{Binding !IsProcessing}"
-                    Width="60" />
+            <Grid>
+                <StackPanel Orientation="Horizontal" Spacing="15">
+                    <Button
+                        Command="{Binding SelectFileCommand}"
+                        Content="Open"
+                        IsEnabled="{Binding !IsProcessing}"
+                        Width="60" />
 
-                <Button
-                    Background="lightgreen"
-                    Command="{Binding LoadFramesAndUpdateDisplayCommand}"
-                    Content="Load"
-                    IsEnabled="{Binding IsFileSelected}"
-                    Width="60" />
+                    <Button
+                        Background="lightgreen"
+                        Command="{Binding LoadFramesAndUpdateDisplayCommand}"
+                        Content="Load"
+                        IsEnabled="{Binding IsFileSelected}"
+                        Width="60" />
 
-                <Button
-                    Background="red"
-                    Command="{Binding PauseResumeCommand}"
-                    Content="Pause"
-                    Foreground="LightGray"
-                    IsEnabled="{Binding IsProcessing}"
-                    Name="PauseButton"
-                    Width="50" />
+                    <Button
+                        Background="red"
+                        Command="{Binding PauseResumeCommand}"
+                        Content="Pause"
+                        Foreground="LightGray"
+                        IsEnabled="{Binding IsProcessing}"
+                        Name="PauseButton"
+                        Width="50" />
 
-                <Button
-                    Content="Multi-mode"
-                    IsEnabled="False"
-                    Margin="50,0,0,0" />
+                    <Button
+                        Content="Multi-mode"
+                        IsEnabled="False"
+                        Margin="50,0,0,0" />
 
-                <Button
-                    Background="Red"
-                    Command="{Binding StopGrabFrameCommand}"
-                    Content="Exit"
-                    Foreground="White"
-                    IsEnabled="True"
-                    Name="ExitButton"
-                    Width="50" />
+                    <Button
+                        Background="Red"
+                        Command="{Binding StopGrabFrameCommand}"
+                        Content="Exit"
+                        Foreground="White"
+                        IsEnabled="True"
+                        Name="ExitButton"
+                        Width="50" />
+                </StackPanel>
 
-            </StackPanel>
+                <ProgressBar
+                    Foreground="GreenYellow"
+                    Height="20"
+                    HorizontalAlignment="Right"
+                    IsVisible="{Binding IsProcessing}"
+                    Margin="10"
+                    Maximum="{Binding ChannelCapacity}"
+                    Minimum="0"
+                    Opacity="0.7"
+                    ProgressTextFormat="{}{0}/{3} Buffered frame"
+                    ShowProgressText="True"
+                    Value="{Binding CurrentChannelCapacity}"
+                    VerticalAlignment="Center"
+                    Width="20" />
+
+            </Grid>
+
         </Border>
 
         <!--  Left: Image display panels  -->
@@ -116,7 +134,7 @@
                 </StackPanel>
 
                 <StackPanel Margin="10">
-                    <TextBlock FontSize="16" Text="Repeat frane" />
+                    <TextBlock FontSize="16" Text="Repeat frame" />
                     <NumericUpDown
                         FontSize="16"
                         Increment="1"

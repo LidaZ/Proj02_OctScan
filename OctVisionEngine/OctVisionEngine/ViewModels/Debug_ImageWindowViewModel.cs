@@ -55,6 +55,8 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     [ObservableProperty] private int _rasterNum = 1;
     [ObservableProperty] private int _sampNumX = 256;
     [ObservableProperty] private int _sampNumY;
+    [ObservableProperty] private int _channelCapacity = 10;
+    [ObservableProperty] private int _currentChannelCapacity = 0;
 
     public Debug_ImageWindowViewModel()
     {
@@ -132,6 +134,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
                 while (IsPaused)
                 { await Task.Delay(300, _cts.Token); }
                 await writer.WriteAsync(floatData3D, _cts.Token);
+                CurrentChannelCapacity = _broadcastChannel.Reader.Count;
             }
         }
         finally
@@ -146,6 +149,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         {
             await foreach (var blockAs3dArray in reader.ReadAllAsync(_cts.Token))
             {
+                CurrentChannelCapacity = _broadcastChannel.Reader.Count;
                 if (RasterNum == 1)
                 {
                     var (bscanBitmap, enfaceBitmap) = await Task.Run(async () =>
