@@ -55,7 +55,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
     [ObservableProperty] private int _rasterNum = 1;
     [ObservableProperty] private int _sampNumX = 256;
     [ObservableProperty] private int _sampNumY;
-    [ObservableProperty] private int _channelCapacity = 10;
+    [ObservableProperty] private int _channelCapacity = 20;
     [ObservableProperty] private int _currentChannelCapacity = 0;
 
     public Debug_ImageWindowViewModel()
@@ -105,7 +105,7 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         IsProcessing = true;
         try
         {
-            _broadcastChannel = Channel.CreateBounded<float[,,]>(new BoundedChannelOptions(10)
+            _broadcastChannel = Channel.CreateBounded<float[,,]>(new BoundedChannelOptions(ChannelCapacity)
             { FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true });  // 当false时允许多个读取者
             // 当 SingleReader 设置为 false 时，意味着多个线程可能会同时尝试从通道中读取数据。为了避免出现竞态条件（race conditions），
             // 通道的内部实现必须引入线程同步机制。例如，当一个线程正在从通道中读取数据时，其他线程必须被阻塞或等待，直到读取操作完成。
@@ -133,6 +133,10 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
             {
                 while (IsPaused)
                 { await Task.Delay(300, _cts.Token); }
+
+                while (_broadcastChannel.Reader.Count >= ChannelCapacity - 2)
+                { await Task.Delay(50, _cts.Token); }  // 从本地Bin读文件的话，从channel往外读的速度跟不上往里写的速度，尤其是RasterNum==1时
+
                 await writer.WriteAsync(floatData3D, _cts.Token);
                 CurrentChannelCapacity = _broadcastChannel.Reader.Count;
             }

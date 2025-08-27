@@ -63,7 +63,7 @@
                 </StackPanel>
 
                 <ProgressBar
-                    Foreground="GreenYellow"
+                    Foreground="Goldenrod"
                     Height="20"
                     HorizontalAlignment="Right"
                     IsVisible="{Binding IsProcessing}"
@@ -71,7 +71,7 @@
                     Maximum="{Binding ChannelCapacity}"
                     Minimum="0"
                     Opacity="0.7"
-                    ProgressTextFormat="{}{0}/{3} Buffered frame"
+                    ProgressTextFormat="{}{0}/{3} Buffer Block"
                     ShowProgressText="True"
                     Value="{Binding CurrentChannelCapacity}"
                     VerticalAlignment="Center"
