@@ -18,8 +18,6 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
 {
     private readonly float _dbRange;
     private int _blockSizeRead;
-    // private WriteableBitmap? _bscanBitmap;
-    // private WriteableBitmap? _enfaceBitmap;
     [ObservableProperty] private float _minDb = -25f;
     [ObservableProperty] private float _maxDb = 25f;
     [ObservableProperty] private int _alinesPerFrame = 256;
@@ -142,14 +140,14 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
 
 
 
-    public async Task<float[,,]?> ConvertFloat3dArrayToHsvAsync(float[,,] floatData3D)
+    public float[,,]? ConvertFloat3dArrayToHsv(float[,,] floatData3D)
     {
         if (floatData3D == null)
             throw new ArgumentNullException(nameof(floatData3D));
         var width = floatData3D.GetLength(1);
         var height = floatData3D.GetLength(2);
         var hsvArray = new float[3, width, height];
-        await Task.Run( () => { CalculateHsvValues(floatData3D, hsvArray); } );
+        CalculateHsvValues(floatData3D, hsvArray);
         return hsvArray;  // [rasterCount, width, height]
     }
     private void CalculateHsvValues(float[,,] floatData3D, float[,,] hsvArray)

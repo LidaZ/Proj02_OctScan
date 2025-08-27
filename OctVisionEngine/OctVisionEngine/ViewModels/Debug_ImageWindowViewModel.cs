@@ -148,21 +148,16 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
             {
                 if (RasterNum == 1)
                 {
-                    var bscanArray = blockAs3dArray.To2DArray();
                     var (bscanBitmap, enfaceBitmap) = await Task.Run(async () =>
                     {
+                        // 任务1：计算B-scan位图，与任务2并行
+                        var bscanArray = blockAs3dArray.To2DArray();
                         var bscanTask = _imageReader.ConvertFloat2dArrayToGrayAsync(bscanArray);
+                        // 任务2：计算En-face位图，与任务1并行
                         var projection1dArray = BscanProjection.MaxProjectionSpan(bscanArray, 0);
-                        if (_enfaceArray == null || _enfaceArray.GetLength(0) != SampNumY || _enfaceArray.GetLength(1) != SampNumX)
-                        {
-                            _enfaceArray = new float[SampNumY, SampNumX];
-                            _currentRow = 0;
-                        }
-                        for (int y = 0; y < projection1dArray.Length; y++)
-                        { _enfaceArray[_currentRow, y] = projection1dArray[y]; }
-                        _currentRow = (_currentRow + 1) % SampNumY;
-                        // 先刷新_enfaceArray，再转换bitmap
+                        UpdateEnfaceArray(projection1dArray); // 同步封装，无额外开销
                         var enfaceTask = _imageReader.ConvertFloat2dArrayToGrayAsync(_enfaceArray);
+
                         await Task.WhenAll(bscanTask, enfaceTask);
                         return (bscanTask.Result, enfaceTask.Result);
                     }, _cts.Token);
@@ -174,25 +169,15 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
                 {
                     var (bscanBitmap, enfaceBitmap) = await Task.Run(async () =>
                     {
+                        // 任务1：计算B-scan位图
                         var bscanTask = _imageReader.ConvertFloat3dArrayToRgbAsync(blockAs3dArray);
-                        var hsvTask = _imageReader.ConvertFloat3dArrayToHsvAsync(blockAs3dArray);
-                        await hsvTask;
-                        var enfaceHsvArray = hsvTask.Result;
-                        var projectionHsvArray = BscanProjection.MaxHueProjectionSpan(enfaceHsvArray, 0);
-                        if (_enfaceHsvArray == null || _enfaceHsvArray.GetLength(1) != SampNumY || _enfaceHsvArray.GetLength(2) != SampNumX)
-                        {
-                            _enfaceHsvArray = new float[3, SampNumY, SampNumX];
-                            _currentRow = 0;
-                        }
-                        for (int hsvChannel = 0; hsvChannel < 3; hsvChannel++)
-                        {
-                            for (int y = 0; y < projectionHsvArray.GetLength(1); y++)
-                            { _enfaceHsvArray[hsvChannel, _currentRow, y] = projectionHsvArray[hsvChannel, y]; }
-                        }
-                        _currentRow = (_currentRow + 1) % SampNumY;
-                        var enfaceTask = _imageReader.ConvertFloat3dArrayToRgbAsync(_enfaceHsvArray);
+                        // 任务2：计算En-face位图。它依赖于一个前置的同步计算。
+                        var hsvArray = _imageReader.ConvertFloat3dArrayToHsv(blockAs3dArray); // 同步计算
+                        var projectionHsvArray = BscanProjection.MaxHueProjectionSpan(hsvArray, 0);
+                        UpdateEnfaceHsvArray(projectionHsvArray); // 同步封装，无额外开销
+                        var enfaceTask = _imageReader.ConvertFloat3dArrayToRgbAsync(_enfaceHsvArray); // 异步转换
 
-                        Task.WaitAll(bscanTask, enfaceTask);
+                        await Task.WhenAll(bscanTask, enfaceTask);
                         return (bscanTask.Result, enfaceTask.Result);
                     }, _cts.Token);
                     BscanLoaded = bscanBitmap;
@@ -202,6 +187,35 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
         }
         catch (ChannelClosedException) { }
     }
+
+
+    private void UpdateEnfaceArray(float[] projection1dArray)
+    {
+        if (_enfaceArray == null || _enfaceArray.GetLength(0) != SampNumY || _enfaceArray.GetLength(1) != SampNumX)
+        {
+            _enfaceArray = new float[SampNumY, SampNumX];
+            _currentRow = 0;
+        }
+        for (int y = 0; y < projection1dArray.Length; y++)
+        { _enfaceArray[_currentRow, y] = projection1dArray[y]; }
+        _currentRow = (_currentRow + 1) % SampNumY;
+    }
+
+    private void UpdateEnfaceHsvArray(float[,] projectionHsvArray)
+    {
+        if (_enfaceHsvArray == null || _enfaceHsvArray.GetLength(1) != SampNumY || _enfaceHsvArray.GetLength(2) != SampNumX)
+        {
+            _enfaceHsvArray = new float[3, SampNumY, SampNumX];
+            _currentRow = 0;
+        }
+        for (int hsvChannel = 0; hsvChannel < 3; hsvChannel++)
+        {
+            for (int y = 0; y < projectionHsvArray.GetLength(1); y++)
+            { _enfaceHsvArray[hsvChannel, _currentRow, y] = projectionHsvArray[hsvChannel, y]; }
+        }
+        _currentRow = (_currentRow + 1) % SampNumY;
+    }
+
 
 
     [RelayCommand]
