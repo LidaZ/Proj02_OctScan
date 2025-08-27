@@ -150,7 +150,38 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
         var height = floatData3D.GetLength(2);
         var hsvArray = new float[3, width, height];
         await Task.Run( () => { CalculateHsvValues(floatData3D, hsvArray); } );
-        return hsvArray;
+        return hsvArray;  // [rasterCount, width, height]
+    }
+    private void CalculateHsvValues(float[,,] floatData3D, float[,,] hsvArray)
+    {
+        var rasterCount = floatData3D.GetLength(0);
+        var width = floatData3D.GetLength(1);
+        var height = floatData3D.GetLength(2);
+        Parallel.For(0, width, x =>
+        {
+            for (int y = 0; y < height; y++)
+            {
+                var sum = 0f;
+                var sumSquares = 0f;
+                for (int ra = 0; ra < rasterCount; ra++)
+                {
+                    var arrayValue = floatData3D[ra, x, y];
+                    sum += arrayValue;
+                    sumSquares += arrayValue * arrayValue;
+                }
+
+                var mean = sum / rasterCount;
+                var variance = (sumSquares / rasterCount) - (mean * mean);
+
+                var hue = Math.Max(0f, Math.Min(360f, variance * 10f));
+                const float saturation = 1.0f;
+                var value = Math.Max(0f, Math.Min(1f, (mean - _minDb) / _dbRange));
+
+                hsvArray[0, x, y] = hue;
+                hsvArray[1, x, y] = saturation;
+                hsvArray[2, x, y] = value;
+            }
+        });
     }
 
     public async Task<WriteableBitmap?> ConvertFloat3dArrayToRgbAsync(float[,,] floatData3D)
@@ -199,37 +230,6 @@ public partial class Debug_LoadFramesFromBin : ObservableObject
         return (bitmap);
     }
 
-    private void CalculateHsvValues(float[,,] floatData3D, float[,,] hsvArray)
-    {
-        var rasterCount = floatData3D.GetLength(0);
-        var width = floatData3D.GetLength(1);
-        var height = floatData3D.GetLength(2);
-        Parallel.For(0, width, x =>
-        {
-            for (int y = 0; y < height; y++)
-            {
-                var sum = 0f;
-                var sumSquares = 0f;
-                for (int ra = 0; ra < rasterCount; ra++)
-                {
-                    var arrayValue = floatData3D[ra, x, y];
-                    sum += arrayValue;
-                    sumSquares += arrayValue * arrayValue;
-                }
-
-                var mean = sum / rasterCount;
-                var variance = (sumSquares / rasterCount) - (mean * mean);
-
-                var hue = Math.Max(0f, Math.Min(360f, variance * 10f));
-                const float saturation = 1.0f;
-                var value = Math.Max(0f, Math.Min(1f, (mean - _minDb) / _dbRange));
-
-                hsvArray[0, x, y] = hue;
-                hsvArray[1, x, y] = saturation;
-                hsvArray[2, x, y] = value;
-            }
-        });
-    }
 
     private static (float r, float g, float b) HsvToRgb(float h, float s, float v)
     {
