@@ -149,18 +149,25 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
             if (RasterNum == 1)
             {
                 var bscanArray = blockAs3dArray.To2DArray();
-                BscanLoaded = await _imageReader.ConvertFloat2dArrayToGrayAsync(bscanArray);
-                // 单独处理 En-face 的逻辑
-                var projectionData = BscanProjection.MaxProjectionSpan(bscanArray, 0);
-                if (_enfaceArray == null || _enfaceArray.GetLength(0) != SampNumY || _enfaceArray.GetLength(1) != SampNumX)
+
+                var (bscanBitmap, enfaceBitmap) = await Task.Run(async () =>
                 {
-                    _enfaceArray = new float[SampNumY, SampNumX];
-                    _currentRow = 0;
-                }
-                for (int y = 0; y < projectionData.Length; y++)
-                { _enfaceArray[_currentRow, y] = projectionData[y]; }
-                _currentRow = (_currentRow + 1) % SampNumY;
-                EnfaceImage = await _imageReader.ConvertFloat2dArrayToGrayAsync(_enfaceArray);
+                    var bscanTask = _imageReader.ConvertFloat2dArrayToGrayAsync(bscanArray);
+                    var projectionData = BscanProjection.MaxProjectionSpan(bscanArray, 0);
+                    if (_enfaceArray == null || _enfaceArray.GetLength(0) != SampNumY || _enfaceArray.GetLength(1) != SampNumX)
+                    {
+                        _enfaceArray = new float[SampNumY, SampNumX];
+                        _currentRow = 0;
+                    }
+                    for (int y = 0; y < projectionData.Length; y++)
+                    { _enfaceArray[_currentRow, y] = projectionData[y]; }
+                    _currentRow = (_currentRow + 1) % SampNumY;
+                    var enfaceTask = _imageReader.ConvertFloat2dArrayToGrayAsync(_enfaceArray);
+                    await Task.WhenAll(bscanTask, enfaceTask);
+                    return (bscanTask.Result, enfaceTask.Result);
+                }, _cts.Token);
+                BscanLoaded = bscanBitmap;
+                EnfaceImage = enfaceBitmap;
             }
             else if (RasterNum > 1)
             {
@@ -171,10 +178,10 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
                     Task.WaitAll(bscanTask, hsvTask);
                     return (bscanTask.Result, hsvTask.Result);
                 }, _cts.Token);
-                // BscanLoaded = bscanBitmap;
+                BscanLoaded = bscanBitmap;
                 // // 使用enfaceHsvArray计算EnfaceImage
                 // var projectionData = BscanProjection.MaxProjectionSpan(enfaceHsvArray, 0);
-                // // 这里应该用 projectionData 更新 _enfaceBitmap，然后赋给 EnfaceImage
+                // // 这里应该用 projectionData 更新 _enfaceBitmap，然后赋给 EnfaceImage, 也是用await
                 // // ...
             }
         }
