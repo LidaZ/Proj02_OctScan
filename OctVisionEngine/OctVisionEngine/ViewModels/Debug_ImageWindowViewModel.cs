@@ -172,32 +172,30 @@ public partial class Debug_ImageWindowViewModel : ObservableObject // INotifyPro
 
                 else if (RasterNum > 1)
                 {
-                    var (bscanBitmap, enfaceHsvArray) = await Task.Run(() =>
+                    var (bscanBitmap, enfaceBitmap) = await Task.Run(async () =>
                     {
                         var bscanTask = _imageReader.ConvertFloat3dArrayToRgbAsync(blockAs3dArray);
                         var hsvTask = _imageReader.ConvertFloat3dArrayToHsvAsync(blockAs3dArray);
-                        // ......
-                        Task.WaitAll(bscanTask, hsvTask);
-                        return (bscanTask.Result, hsvTask.Result);
+                        await hsvTask;
+                        var enfaceHsvArray = hsvTask.Result;
+                        var projectionHsvArray = BscanProjection.MaxHueProjectionSpan(enfaceHsvArray, 0);
+                        if (_enfaceHsvArray == null || _enfaceHsvArray.GetLength(1) != SampNumY || _enfaceHsvArray.GetLength(2) != SampNumX)
+                        {
+                            _enfaceHsvArray = new float[3, SampNumY, SampNumX];
+                            _currentRow = 0;
+                        }
+                        for (int hsvChannel = 0; hsvChannel < 3; hsvChannel++)
+                        {
+                            for (int y = 0; y < projectionHsvArray.GetLength(1); y++)
+                            { _enfaceHsvArray[hsvChannel, _currentRow, y] = projectionHsvArray[hsvChannel, y]; }
+                        }
+                        _currentRow = (_currentRow + 1) % SampNumY;
+                        var enfaceTask = _imageReader.ConvertFloat3dArrayToRgbAsync(_enfaceHsvArray);
+
+                        Task.WaitAll(bscanTask, enfaceTask);
+                        return (bscanTask.Result, enfaceTask.Result);
                     }, _cts.Token);
                     BscanLoaded = bscanBitmap;
-
-                    var projectionHsvArray = BscanProjection.MaxHueProjectionSpan(enfaceHsvArray, 0);
-                    if (_enfaceHsvArray == null || _enfaceHsvArray.GetLength(1) != SampNumY || _enfaceHsvArray.GetLength(2) != SampNumX)
-                    {
-                        _enfaceHsvArray = new float[3, SampNumY, SampNumX];
-                        _currentRow = 0;
-                    }
-                    for (int hsvChannel = 0; hsvChannel < 3; hsvChannel++)
-                    {
-                        for (int y = 0; y < projectionHsvArray.GetLength(1); y++)
-                        { _enfaceHsvArray[hsvChannel, _currentRow, y] = projectionHsvArray[hsvChannel, y]; }
-                    }
-                    _currentRow = (_currentRow + 1) % SampNumY;
-                    // 这里应该用 projectionData 更新 _enfaceBitmap，然后赋给 EnfaceImage, 也是用await
-                    var enfaceTask = _imageReader.ConvertFloat3dArrayToRgbAsync(_enfaceHsvArray);
-                    await Task.WhenAll(enfaceTask);
-                    var enfaceBitmap = enfaceTask.Result;
                     EnfaceImage = enfaceBitmap;
                 }
             }
